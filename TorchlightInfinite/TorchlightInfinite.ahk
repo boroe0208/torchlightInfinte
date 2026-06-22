@@ -81,6 +81,7 @@ global isFlaskActive := false
 global isAutoLooting := false
 global isMasterPaused := false
 global isFocusPaused := false
+global CurrentHoveredHwnd := 0
 
 ; Memory for Resume (What was active before pause?)
 global memSpam := false
@@ -90,78 +91,88 @@ global memLoot := false
 ; ------------------------------------------------------------------------------
 ; 4. GUI INTERFACE
 ; ------------------------------------------------------------------------------
+; 4. GUI INTERFACE
+; ------------------------------------------------------------------------------
 ; Create the Main GUI Window
-global TLGui := Gui("+AlwaysOnTop -Caption +ToolWindow", "TL Control")
+global TLGui := Gui("+AlwaysOnTop -Caption +ToolWindow +Owner", "TL Control")
 TLGui.SetFont("s9", "Segoe UI")
-TLGui.BackColor := "1f1f1f" ; Dark Theme Background
-TLGui.SetFont("cWhite")
+TLGui.BackColor := "0F172A" ; Tailwind Slate 900 (Modern dark blue-slate background)
+try DllCall("dwmapi\DwmSetWindowAttribute", "ptr", TLGui.Hwnd, "uint", 33, "int*", 2, "uint", 4) ; Windows 11 Rounded Corners
 
 ; --- Header Section ---
-global txtTitle := TLGui.Add("Text", "x10 y8 w80 h20 +0x200", "TL Control")
-TLGui.SetFont("s10 bold cRed")
-global txtActiveDot := TLGui.Add("Text", "x95 y8 w15 h20 Center +0x200 cRed", "●")
-global btnMin := TLGui.Add("Text", "x110 y5 w20 h20 Center +0x200 cGray", "-") ; Minimize
-TLGui.SetFont("s9 norm cWhite")
+TLGui.SetFont("s10 Bold", "Segoe UI")
+global txtTitle := TLGui.Add("Text", "x12 y8 w75 h20 +0x200 cE2E8F0", "TL Control")
+TLGui.SetFont("s12 Bold cEF4444")
+global txtActiveDot := TLGui.Add("Text", "x92 y8 w15 h20 Center +0x200", "●")
+TLGui.SetFont("s10 Bold c94A3B8")
+global btnMin := TLGui.Add("Text", "x112 y7 w18 h18 Center +0x200 Background1E293B", "—") ; Minimize to logo (Flat style)
 
 ; --- Controls Section (Vertical Stack) ---
-global chkSpam := TLGui.Add("Checkbox", "x15 y35 w110 vSpam", "Combat (" Key_ToggleSpam ")")
-global chkFlask := TLGui.Add("Checkbox", "x15 y+8 w110 vFlask", "Flasks (" Key_ToggleFlasks ")")
-global chkLoot := TLGui.Add("Checkbox", "x15 y+8 w110 vLoot", "Auto Loot (" Key_ToggleLoot ")")
+TLGui.SetFont("s9 Semibold", "Segoe UI")
+global chkSpam := TLGui.Add("Checkbox", "x15 y38 w110 vSpam cF8FAFC", "Combat (" Key_ToggleSpam ")")
+global chkFlask := TLGui.Add("Checkbox", "x15 y+10 w110 vFlask cF8FAFC", "Flasks (" Key_ToggleFlasks ")")
+global chkLoot := TLGui.Add("Checkbox", "x15 y+10 w110 vLoot cF8FAFC", "Auto Loot (" Key_ToggleLoot ")")
 
-; Separator
-TLGui.Add("Text", "x10 y+8 w120 h1 0x10")
+; Custom Modern Horizontal Dividers (1px height slate-700)
+global sepLine1 := TLGui.Add("Text", "x12 y+10 w116 h1 Background334155")
 
-global chkPause := TLGui.Add("Checkbox", "x15 y+8 w110 vPause", "Pause All (" Key_MasterPause ")")
+global chkPause := TLGui.Add("Checkbox", "x15 y+10 w110 vPause cF8FAFC", "Pause All (" Key_MasterPause ")")
 
-; --- Footer / Status ---
-TLGui.SetFont("s8 cGray")
-global txtStatus := TLGui.Add("Text", "x10 y+10 w120 h20 Center", "Status: Idle")
-TLGui.SetFont("s8 cWhite")
-global btnSettings := TLGui.Add("Button", "x15 y+5 w110 h20", "Settings")
+global sepLine2 := TLGui.Add("Text", "x12 y+10 w116 h1 Background334155")
 
-; --- Settings Panel (Hidden by default) ---
-global lblSpam := TLGui.Add("Text", "x15 y+5 w110 h15 Hidden", "Spam (Min/Max):")
-global edtSpamMin := TLGui.Add("Edit", "x15 y+2 w50 h20 Number Hidden cBlack", SpamIntervalMin)
-global edtSpamMax := TLGui.Add("Edit", "x75 yp w50 h20 Number Hidden cBlack", SpamIntervalMax)
+; --- Footer / Status (Pill Panel design) ---
+TLGui.SetFont("s8 Semibold cE2E8F0")
+global txtStatus := TLGui.Add("Text", "x15 y+8 w110 h20 Center +0x200 Background1E293B", "Status: Idle")
 
-global lblFlask := TLGui.Add("Text", "x15 y+5 w110 h15 Hidden", "Flask (ms):")
-global edtFlask := TLGui.Add("Edit", "x15 y+2 w110 h20 Number Hidden cBlack", FlaskLoopInterval)
+TLGui.SetFont("s9 Semibold cF8FAFC")
+global btnSettings := TLGui.Add("Text", "x15 y+8 w110 h22 Center +0x200 Background4F46E5", "Settings ⚙️")
 
-global lblLoot := TLGui.Add("Text", "x15 y+5 w110 h15 Hidden", "Loot (ms):")
-global edtLoot := TLGui.Add("Edit", "x15 y+2 w110 h20 Number Hidden cBlack", LootLoopInterval)
+; --- Settings Panel (Hidden by default, dark-themed flat input styling) ---
+TLGui.SetFont("s8 c94A3B8")
+global lblSpam := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Spam (Min/Max):")
+global edtSpamMin := TLGui.Add("Edit", "x15 y+2 w50 h20 Number Hidden Background1E293B cF8FAFC -E0x200", SpamIntervalMin)
+global edtSpamMax := TLGui.Add("Edit", "x75 yp w50 h20 Number Hidden Background1E293B cF8FAFC -E0x200", SpamIntervalMax)
 
-global lblHuman := TLGui.Add("Text", "x15 y+5 w110 h15 Hidden", "Hold (Min/Max):")
-global edtHoldMin := TLGui.Add("Edit", "x15 y+2 w50 h20 Number Hidden cBlack", KeyHoldMin)
-global edtHoldMax := TLGui.Add("Edit", "x75 yp w50 h20 Number Hidden cBlack", KeyHoldMax)
+global lblFlask := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Flask (ms):")
+global edtFlask := TLGui.Add("Edit", "x15 y+2 w110 h20 Number Hidden Background1E293B cF8FAFC -E0x200", FlaskLoopInterval)
+
+global lblLoot := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Loot (ms):")
+global edtLoot := TLGui.Add("Edit", "x15 y+2 w110 h20 Number Hidden Background1E293B cF8FAFC -E0x200", LootLoopInterval)
+
+global lblHuman := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Hold (Min/Max):")
+global edtHoldMin := TLGui.Add("Edit", "x15 y+2 w50 h20 Number Hidden Background1E293B cF8FAFC -E0x200", KeyHoldMin)
+global edtHoldMax := TLGui.Add("Edit", "x75 yp w50 h20 Number Hidden Background1E293B cF8FAFC -E0x200", KeyHoldMax)
 
 ; --- Key Bindings ---
-global lblKeys := TLGui.Add("Text", "x15 y+5 w110 h15 Hidden", "Keys (Combat / Loot):")
-global edtKeySkill := TLGui.Add("Edit", "x15 y+2 w50 h20 Hidden cBlack", Key_Skill)
-global edtKeyLoot := TLGui.Add("Edit", "x75 yp w50 h20 Hidden cBlack", Key_Loot)
+global lblKeys := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Keys (Combat / Loot):")
+global edtKeySkill := TLGui.Add("Edit", "x15 y+2 w50 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Skill)
+global edtKeyLoot := TLGui.Add("Edit", "x75 yp w50 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Loot)
 
-global lblFlaskKeys := TLGui.Add("Text", "x15 y+5 w110 h15 Hidden", "Flask Keys (1/2/3):")
-global edtKeyF1 := TLGui.Add("Edit", "x15 y+2 w30 h20 Hidden cBlack", Key_Flask1)
-global edtKeyF2 := TLGui.Add("Edit", "x55 yp w30 h20 Hidden cBlack", Key_Flask2)
-global edtKeyF3 := TLGui.Add("Edit", "x95 yp w30 h20 Hidden cBlack", Key_Flask3)
-
+global lblFlaskKeys := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Flask Keys (1/2/3):")
+global edtKeyF1 := TLGui.Add("Edit", "x15 y+2 w30 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Flask1)
+global edtKeyF2 := TLGui.Add("Edit", "x55 yp w30 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Flask2)
+global edtKeyF3 := TLGui.Add("Edit", "x95 yp w30 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Flask3)
 
 ; --- Color Guard Section ---
-TLGui.Add("Text", "x10 y+10 w120 h1 0x10 Hidden vSepColor")
-global lblColorGuard := TLGui.Add("Text", "x15 y+5 w110 h15 Hidden", "Color Guard (Auto-Pause):")
-global chkColorGuard := TLGui.Add("Checkbox", "x15 y+2 w110 Hidden vEnableColor", "Enable Monitoring")
-global lblColorCoords := TLGui.Add("Text", "x15 y+5 w120 h15 Hidden", "Coords, Color & Var:")
-global edtTargetX := TLGui.Add("Edit", "x15 y+2 w35 h20 Hidden cBlack", TargetX)
-global edtTargetY := TLGui.Add("Edit", "x55 yp w35 h20 Hidden cBlack", TargetY)
-global edtTargetColor := TLGui.Add("Edit", "x95 yp w40 h20 Hidden cBlack", TargetColor)
-global edtVariance := TLGui.Add("Edit", "x15 y+5 w35 h20 Hidden cBlack", ColorVariance)
-global btnPickColor := TLGui.Add("Button", "x55 yp w80 h20 Hidden", "Pick Color (F12)")
+global sepColor := TLGui.Add("Text", "x12 y+10 w116 h1 Background334155 Hidden vSepColor")
+global lblColorGuard := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Color Guard (Auto-Pause):")
+global chkColorGuard := TLGui.Add("Checkbox", "x15 y+2 w110 Hidden vEnableColor cF8FAFC", "Enable Monitoring")
+global lblColorCoords := TLGui.Add("Text", "x15 y+6 w120 h15 Hidden", "Coords, Color & Var:")
+global edtTargetX := TLGui.Add("Edit", "x15 y+2 w35 h20 Hidden Background1E293B cF8FAFC -E0x200", TargetX)
+global edtTargetY := TLGui.Add("Edit", "x55 yp w35 h20 Hidden Background1E293B cF8FAFC -E0x200", TargetY)
+global edtTargetColor := TLGui.Add("Edit", "x95 yp w40 h20 Hidden Background1E293B cF8FAFC -E0x200", TargetColor)
+global edtVariance := TLGui.Add("Edit", "x15 y+5 w35 h20 Hidden Background1E293B cF8FAFC -E0x200", ColorVariance)
 
-global btnApply := TLGui.Add("Button", "x15 y+10 w110 h20 Hidden", "Apply Settings")
-global btnReload := TLGui.Add("Button", "x15 y+5 w110 h20 Hidden", "Reload Script")
-global btnExit := TLGui.Add("Button", "x15 y+5 w110 h20 Hidden", "Exit App")
+TLGui.SetFont("s9 Semibold cF8FAFC")
+global btnPickColor := TLGui.Add("Text", "x55 yp w80 h20 Center +0x200 Hidden Background6366F1", "Pick Color (F12)")
 
-; --- Minimized Logo (Hidden by default) ---
-global btnLogo := TLGui.Add("Button", "x0 y0 w40 h40 Hidden", "TL")
+global btnApply := TLGui.Add("Text", "x15 y+12 w110 h22 Center +0x200 Hidden Background10B981", "Apply Settings ✓")
+global btnReload := TLGui.Add("Text", "x15 y+6 w110 h22 Center +0x200 Hidden Background4B5563", "Reload Script 🔄")
+global btnExit := TLGui.Add("Text", "x15 y+6 w110 h22 Center +0x200 Hidden BackgroundEF4444", "Exit App ✕")
+
+; --- Minimized Logo (Hidden by default, custom styled icon button) ---
+TLGui.SetFont("s10 Bold cF8FAFC")
+global btnLogo := TLGui.Add("Text", "x0 y0 w40 h40 Center +0x200 Hidden Background4F46E5", "TL")
 
 ; --- GUI Events ---
 chkSpam.OnEvent("Click", (*) => ToggleSpam(true))
@@ -180,14 +191,14 @@ chkColorGuard.OnEvent("Click", (*) => ToggleColorGuard(true))
 ; --- Window Utilities ---
 ; Draggable Background
 OnMessage(0x0201, WM_LBUTTONDOWN)
-; Tooltips
+; Tooltips and hover colors
 OnMessage(0x0200, WM_MOUSEMOVE)
 
 ; Active Window Check Timer
 SetTimer CheckWindowActive, 200
 
 ; Show Initial State
-TLGui.Show("x50 y150 w140 h195 NoActivate")
+TLGui.Show("x50 y150 w140 h240 NoActivate")
 WinSetTransparent(180, "ahk_id " TLGui.Hwnd)
 
 ; ------------------------------------------------------------------------------
@@ -198,9 +209,25 @@ WM_LBUTTONDOWN(*) {
 }
 
 WM_MOUSEMOVE(*) {
+    global CurrentHoveredHwnd
     static PrevControl := ""
     CurrControl := ""
     MouseGetPos(, , , &hControl, 2)
+
+    ; Hover state transitions
+    if (hControl != CurrentHoveredHwnd) {
+        if CurrentHoveredHwnd {
+            ResetButtonColor(CurrentHoveredHwnd)
+        }
+        if IsHoverableButton(hControl) {
+            ApplyButtonHoverColor(hControl)
+            CurrentHoveredHwnd := hControl
+            SetTimer CheckMouseLeave, 50
+        } else {
+            CurrentHoveredHwnd := 0
+            SetTimer CheckMouseLeave, 0
+        }
+    }
 
     if (hControl) {
         if (hControl = chkSpam.Hwnd)
@@ -223,6 +250,8 @@ WM_MOUSEMOVE(*) {
             CurrControl := "Terminate Script"
         else if (hControl = btnMin.Hwnd)
             CurrControl := "Minimize to Logo"
+        else if (hControl = btnPickColor.Hwnd)
+            CurrControl := "Pick coordinates and average color from screen"
     }
 
     if (CurrControl != PrevControl) {
@@ -270,7 +299,7 @@ ToggleGuiMode(minimize) {
         btnSettings.Visible := true
 
         ; Expand Window (Reset settings view to closed)
-        TLGui.Show("w140 h195")
+        TLGui.Show("w140 h240")
         WinSetTransparent(180, "ahk_id " TLGui.Hwnd)
     }
 }
@@ -319,7 +348,7 @@ ToggleSettings(forceClose := "") {
         btnApply.Visible := true
         btnReload.Visible := true
         btnExit.Visible := true
-        TLGui.Show("h705") ; Expanded height for full menu
+        TLGui.Show("h725") ; Expanded height for full menu
     } else {
         ; Hide Timing Controls
         lblSpam.Visible := false
@@ -356,7 +385,7 @@ ToggleSettings(forceClose := "") {
         btnApply.Visible := false
         btnReload.Visible := false
         btnExit.Visible := false
-        TLGui.Show("h195") ; Restore height
+        TLGui.Show("h240") ; Restore height
     }
 }
 
@@ -537,9 +566,9 @@ CheckWindowActive() {
                 UpdateStatus("Resumed (Focused)")
         }
         if (isMasterPaused || isColorPaused) {
-            try txtActiveDot.Opt("cYellow") ; Yellow (Paused)
+            try txtActiveDot.Opt("cF59E0B") ; Yellow/Amber (Paused)
         } else {
-            try txtActiveDot.Opt("c00FF00") ; Green (Lime)
+            try txtActiveDot.Opt("c10B981") ; Emerald Green (Active)
         }
     } else {
         if !isFocusPaused {
@@ -547,7 +576,7 @@ CheckWindowActive() {
             isFocusPaused := true
             UpdateStatus("Unfocused: PAUSED")
         }
-        try txtActiveDot.Opt("cRed")    ; Red
+        try txtActiveDot.Opt("cEF4444")    ; Crimson Red (Unfocused/Inactive)
     }
 }
 
@@ -951,4 +980,56 @@ RestoreState() {
     }
 
     UpdateStatus("Automation Restored")
+}
+
+ResetButtonColor(hwnd) {
+    if (hwnd == btnSettings.Hwnd)
+        btnSettings.Opt("Background4F46E5")
+    else if (hwnd == btnApply.Hwnd)
+        btnApply.Opt("Background10B981")
+    else if (hwnd == btnReload.Hwnd)
+        btnReload.Opt("Background4B5563")
+    else if (hwnd == btnExit.Hwnd)
+        btnExit.Opt("BackgroundEF4444")
+    else if (hwnd == btnPickColor.Hwnd)
+        btnPickColor.Opt("Background6366F1")
+    else if (hwnd == btnMin.Hwnd)
+        btnMin.Opt("Background1E293B")
+    else if (hwnd == btnLogo.Hwnd)
+        btnLogo.Opt("Background4F46E5")
+}
+
+ApplyButtonHoverColor(hwnd) {
+    if (hwnd == btnSettings.Hwnd)
+        btnSettings.Opt("Background6366F1")
+    else if (hwnd == btnApply.Hwnd)
+        btnApply.Opt("Background34D399")
+    else if (hwnd == btnReload.Hwnd)
+        btnReload.Opt("Background6B7280")
+    else if (hwnd == btnExit.Hwnd)
+        btnExit.Opt("BackgroundF87171")
+    else if (hwnd == btnPickColor.Hwnd)
+        btnPickColor.Opt("Background818CF8")
+    else if (hwnd == btnMin.Hwnd)
+        btnMin.Opt("Background334155")
+    else if (hwnd == btnLogo.Hwnd)
+        btnLogo.Opt("Background6366F1")
+}
+
+IsHoverableButton(hwnd) {
+    return (hwnd == btnSettings.Hwnd || hwnd == btnApply.Hwnd || hwnd == btnReload.Hwnd 
+         || hwnd == btnExit.Hwnd || hwnd == btnPickColor.Hwnd || hwnd == btnMin.Hwnd || hwnd == btnLogo.Hwnd)
+}
+
+CheckMouseLeave() {
+    global CurrentHoveredHwnd
+    if !CurrentHoveredHwnd
+        return
+        
+    MouseGetPos(, , , &hControl, 2)
+    if (hControl != CurrentHoveredHwnd) {
+        ResetButtonColor(CurrentHoveredHwnd)
+        CurrentHoveredHwnd := 0
+        SetTimer CheckMouseLeave, 0
+    }
 }
