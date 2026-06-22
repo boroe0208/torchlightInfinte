@@ -17,7 +17,15 @@ CoordMode "Mouse", "Client"
 CoordMode "ToolTip", "Screen" ; Tooltips are better at fixed screen spots or following mouse
 
 ; Ensure Admin Privileges (Required for Game Interaction)
-if not A_IsAdmin {
+hasNoAdminFlag := false
+for arg in A_Args {
+    if (arg = "/noadmin") {
+        hasNoAdminFlag := true
+        break
+    }
+}
+
+if not A_IsAdmin and not hasNoAdminFlag {
     try {
         if A_IsCompiled
             Run "*RunAs `"" A_ScriptFullPath "`""
@@ -70,7 +78,6 @@ global ColorVariance := 15
 global isColorPaused := false
 
 global IniFile := "settings.ini"
-LoadSettings()
 
 ; ------------------------------------------------------------------------------
 ; 3. GLOBAL STATE
@@ -200,6 +207,9 @@ SetTimer CheckWindowActive, 200
 ; Show Initial State
 TLGui.Show("x50 y150 w140 h240 NoActivate")
 WinSetTransparent(180, "ahk_id " TLGui.Hwnd)
+
+; Load settings AFTER GUI is created and shown so that UI elements are fully initialized!
+LoadSettings()
 
 ; ------------------------------------------------------------------------------
 ; 5. WINDOW MESSAGE HANDLERS
