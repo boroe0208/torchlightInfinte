@@ -115,7 +115,7 @@ TLGui.SetFont("s10 Bold c94A3B8")
 global btnMin := TLGui.Add("Text", "x112 y7 w18 h18 Center +0x200 Background1E293B", "—") ; Minimize to logo (Flat style)
 
 ; --- Controls Section (Vertical Stack) ---
-TLGui.SetFont("s9 Semibold", "Segoe UI")
+TLGui.SetFont("s9 w600", "Segoe UI")
 global chkSpam := TLGui.Add("Checkbox", "x15 y38 w110 vSpam cF8FAFC", "Combat (" Key_ToggleSpam ")")
 global chkFlask := TLGui.Add("Checkbox", "x15 y+10 w110 vFlask cF8FAFC", "Flasks (" Key_ToggleFlasks ")")
 global chkLoot := TLGui.Add("Checkbox", "x15 y+10 w110 vLoot cF8FAFC", "Auto Loot (" Key_ToggleLoot ")")
@@ -128,10 +128,10 @@ global chkPause := TLGui.Add("Checkbox", "x15 y+10 w110 vPause cF8FAFC", "Pause 
 global sepLine2 := TLGui.Add("Text", "x12 y+10 w116 h1 Background334155")
 
 ; --- Footer / Status (Pill Panel design) ---
-TLGui.SetFont("s8 Semibold cE2E8F0")
+TLGui.SetFont("s8 w600 cE2E8F0")
 global txtStatus := TLGui.Add("Text", "x15 y+8 w110 h20 Center +0x200 Background1E293B", "Status: Idle")
 
-TLGui.SetFont("s9 Semibold cF8FAFC")
+TLGui.SetFont("s9 w600 cF8FAFC")
 global btnSettings := TLGui.Add("Text", "x15 y+8 w110 h22 Center +0x200 Background4F46E5", "Settings ⚙️")
 
 ; --- Settings Panel (Hidden by default, dark-themed flat input styling) ---
@@ -170,7 +170,7 @@ global edtTargetY := TLGui.Add("Edit", "x55 yp w35 h20 Hidden Background1E293B c
 global edtTargetColor := TLGui.Add("Edit", "x95 yp w40 h20 Hidden Background1E293B cF8FAFC -E0x200", TargetColor)
 global edtVariance := TLGui.Add("Edit", "x15 y+5 w35 h20 Hidden Background1E293B cF8FAFC -E0x200", ColorVariance)
 
-TLGui.SetFont("s9 Semibold cF8FAFC")
+TLGui.SetFont("s9 w600 cF8FAFC")
 global btnPickColor := TLGui.Add("Text", "x55 yp w80 h20 Center +0x200 Hidden Background6366F1", "Pick Color (F12)")
 
 global btnApply := TLGui.Add("Text", "x15 y+12 w110 h22 Center +0x200 Hidden Background10B981", "Apply Settings ✓")
