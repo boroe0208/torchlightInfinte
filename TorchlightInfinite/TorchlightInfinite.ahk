@@ -774,15 +774,35 @@ PickColorCoord() {
 ; --- Hotkeys ---
 ; Dynamic: Registered via RegisterHotkeys()
 
-~RCtrl:: {
+RCtrl:: {
     global isShopPaused, isMasterPaused, isColorPaused, isFocusPaused, ColorGuardHibernationEnd
-    ColorGuardHibernationEnd := A_TickCount + 1000
+    
     if !isShopPaused {
+        ; 1. Stop automation immediately
         StopAutomation(true)
         isShopPaused := true
         UpdateStatus("Shop Paused")
+        
+        ; 2. Hibernate the Color Guard during transition
+        ColorGuardHibernationEnd := A_TickCount + 1500
+        
+        ; 3. Wait 100ms to let all pending key inputs clear
+        Sleep 100
+        
+        ; 4. Send RCtrl to open the shop safely
+        SendInput "{RCtrl}"
     } else {
+        ; 1. Send RCtrl to close the shop
+        SendInput "{RCtrl}"
+        
+        ; 2. Hibernate the Color Guard during transition
+        ColorGuardHibernationEnd := A_TickCount + 1500
         isShopPaused := false
+        
+        ; 3. Wait 100ms for shop closing transition
+        Sleep 100
+        
+        ; 4. Restore automation
         RestoreState()
         UpdateStatus("Resumed (Shop Closed)")
     }
@@ -791,8 +811,9 @@ PickColorCoord() {
 ~Esc:: {
     global isShopPaused, ColorGuardHibernationEnd
     if isShopPaused {
-        ColorGuardHibernationEnd := A_TickCount + 1000
+        ColorGuardHibernationEnd := A_TickCount + 1500
         isShopPaused := false
+        Sleep 100
         RestoreState()
         UpdateStatus("Resumed (Shop Closed)")
     }
