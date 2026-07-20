@@ -535,7 +535,7 @@ RegisterHotkeys() {
     try Hotkey("F12", "Off")
 
     ; Register new hotkeys within the game's context using HotIf (v2 function)
-    HotIf (*) => WinActive(TargetProcess)
+    HotIf (*) => WinActive(TargetProcess) && (A_TickCount >= ColorGuardHibernationEnd)
     Hotkey(Key_ToggleSpam, (*) => ToggleSpam())
     Hotkey(Key_ToggleFlasks, (*) => ToggleFlasks())
     Hotkey(Key_ToggleLoot, (*) => ToggleLoot())
@@ -1053,6 +1053,17 @@ StopAutomation(saveState := false) {
     SetTimer SpamLoop, 0
     SetTimer FlaskLoop, 0
     SetTimer LootLoop, 0
+
+    ReleaseAllKeys()
+}
+
+ReleaseAllKeys() {
+    global Key_Skill, Key_Loot, Key_Flask1, Key_Flask2, Key_Flask3
+    try SendInput "{" Key_Skill " up}"
+    try SendInput "{" Key_Loot " up}"
+    try SendInput "{" Key_Flask1 " up}"
+    try SendInput "{" Key_Flask2 " up}"
+    try SendInput "{" Key_Flask3 " up}"
 }
 
 RestoreState() {
