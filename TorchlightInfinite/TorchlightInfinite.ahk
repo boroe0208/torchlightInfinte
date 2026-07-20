@@ -88,7 +88,10 @@ global isFlaskActive := false
 global isAutoLooting := false
 global isMasterPaused := false
 global isFocusPaused := false
+global isShopPaused := false
+global ColorGuardHibernationEnd := 0
 global CurrentHoveredHwnd := 0
+global CurrentStatusColor := "4F46E5"
 
 ; Memory for Resume (What was active before pause?)
 global memSpam := false
@@ -101,6 +104,7 @@ global memLoot := false
 ; 4. GUI INTERFACE
 ; ------------------------------------------------------------------------------
 ; Create the Main GUI Window
+; Create the Main GUI Window
 global TLGui := Gui("+AlwaysOnTop -Caption +ToolWindow +Owner", "TL Control")
 TLGui.SetFont("s9", "Segoe UI")
 TLGui.BackColor := "0F172A" ; Tailwind Slate 900 (Modern dark blue-slate background)
@@ -108,74 +112,74 @@ try DllCall("dwmapi\DwmSetWindowAttribute", "ptr", TLGui.Hwnd, "uint", 33, "int*
 
 ; --- Header Section ---
 TLGui.SetFont("s10 Bold", "Segoe UI")
-global txtTitle := TLGui.Add("Text", "x12 y8 w75 h20 +0x200 cE2E8F0", "TL Control")
+global txtTitle := TLGui.Add("Text", "x15 y8 w100 h20 +0x200 cE2E8F0", "TL Control")
 TLGui.SetFont("s12 Bold cEF4444")
-global txtActiveDot := TLGui.Add("Text", "x92 y8 w15 h20 Center +0x200", "●")
+global txtActiveDot := TLGui.Add("Text", "x122 y8 w15 h20 Center +0x200", "●")
 TLGui.SetFont("s10 Bold c94A3B8")
-global btnMin := TLGui.Add("Text", "x112 y7 w18 h18 Center +0x200 Background1E293B", "—") ; Minimize to logo (Flat style)
+global btnMin := TLGui.Add("Text", "x142 y7 w18 h18 Center +0x200 Background1E293B", "—") ; Minimize to logo (Flat style)
 
 ; --- Controls Section (Vertical Stack) ---
 TLGui.SetFont("s9 w600", "Segoe UI")
-global chkSpam := TLGui.Add("Checkbox", "x15 y38 w110 vSpam cF8FAFC", "Combat (" Key_ToggleSpam ")")
-global chkFlask := TLGui.Add("Checkbox", "x15 y+10 w110 vFlask cF8FAFC", "Flasks (" Key_ToggleFlasks ")")
-global chkLoot := TLGui.Add("Checkbox", "x15 y+10 w110 vLoot cF8FAFC", "Auto Loot (" Key_ToggleLoot ")")
+global chkSpam := TLGui.Add("Checkbox", "x15 y38 w140 vSpam cF8FAFC", "Combat (" Key_ToggleSpam ")")
+global chkFlask := TLGui.Add("Checkbox", "x15 y+10 w140 vFlask cF8FAFC", "Flasks (" Key_ToggleFlasks ")")
+global chkLoot := TLGui.Add("Checkbox", "x15 y+10 w140 vLoot cF8FAFC", "Auto Loot (" Key_ToggleLoot ")")
 
 ; Custom Modern Horizontal Dividers (1px height slate-700)
-global sepLine1 := TLGui.Add("Text", "x12 y+10 w116 h1 Background334155")
+global sepLine1 := TLGui.Add("Text", "x12 y+10 w146 h1 Background334155")
 
-global chkPause := TLGui.Add("Checkbox", "x15 y+10 w110 vPause cF8FAFC", "Pause All (" Key_MasterPause ")")
+global chkPause := TLGui.Add("Checkbox", "x15 y+10 w140 vPause cF8FAFC", "Pause All (" Key_MasterPause ")")
 
-global sepLine2 := TLGui.Add("Text", "x12 y+10 w116 h1 Background334155")
+global sepLine2 := TLGui.Add("Text", "x12 y+10 w146 h1 Background334155")
 
 ; --- Footer / Status (Pill Panel design) ---
 TLGui.SetFont("s8 w600 cE2E8F0")
-global txtStatus := TLGui.Add("Text", "x15 y+8 w110 h20 Center +0x200 Background1E293B", "Status: Idle")
+global txtStatus := TLGui.Add("Text", "x15 y+8 w140 h20 Center +0x200 Background1E293B", "Status: Idle")
 
 TLGui.SetFont("s9 w600 cF8FAFC")
-global btnSettings := TLGui.Add("Text", "x15 y+8 w110 h22 Center +0x200 Background4F46E5", "Settings ⚙️")
+global btnSettings := TLGui.Add("Text", "x15 y+8 w140 h22 Center +0x200 Background4F46E5", "Settings ⚙️")
 
 ; --- Settings Panel (Hidden by default, dark-themed flat input styling) ---
 TLGui.SetFont("s8 c94A3B8")
-global lblSpam := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Spam (Min/Max):")
-global edtSpamMin := TLGui.Add("Edit", "x15 y+2 w50 h20 Number Hidden Background1E293B cF8FAFC -E0x200", SpamIntervalMin)
-global edtSpamMax := TLGui.Add("Edit", "x75 yp w50 h20 Number Hidden Background1E293B cF8FAFC -E0x200", SpamIntervalMax)
+global lblSpam := TLGui.Add("Text", "x15 y+6 w140 h15 Hidden", "Spam (Min/Max):")
+global edtSpamMin := TLGui.Add("Edit", "x15 y+2 w65 h20 Number Hidden Background1E293B cF8FAFC -E0x200", SpamIntervalMin)
+global edtSpamMax := TLGui.Add("Edit", "x90 yp w65 h20 Number Hidden Background1E293B cF8FAFC -E0x200", SpamIntervalMax)
 
-global lblFlask := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Flask (ms):")
-global edtFlask := TLGui.Add("Edit", "x15 y+2 w110 h20 Number Hidden Background1E293B cF8FAFC -E0x200", FlaskLoopInterval)
+global lblFlask := TLGui.Add("Text", "x15 y+6 w140 h15 Hidden", "Flask (ms):")
+global edtFlask := TLGui.Add("Edit", "x15 y+2 w140 h20 Number Hidden Background1E293B cF8FAFC -E0x200", FlaskLoopInterval)
 
-global lblLoot := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Loot (ms):")
-global edtLoot := TLGui.Add("Edit", "x15 y+2 w110 h20 Number Hidden Background1E293B cF8FAFC -E0x200", LootLoopInterval)
+global lblLoot := TLGui.Add("Text", "x15 y+6 w140 h15 Hidden", "Loot (ms):")
+global edtLoot := TLGui.Add("Edit", "x15 y+2 w140 h20 Number Hidden Background1E293B cF8FAFC -E0x200", LootLoopInterval)
 
-global lblHuman := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Hold (Min/Max):")
-global edtHoldMin := TLGui.Add("Edit", "x15 y+2 w50 h20 Number Hidden Background1E293B cF8FAFC -E0x200", KeyHoldMin)
-global edtHoldMax := TLGui.Add("Edit", "x75 yp w50 h20 Number Hidden Background1E293B cF8FAFC -E0x200", KeyHoldMax)
+global lblHuman := TLGui.Add("Text", "x15 y+6 w140 h15 Hidden", "Hold (Min/Max):")
+global edtHoldMin := TLGui.Add("Edit", "x15 y+2 w65 h20 Number Hidden Background1E293B cF8FAFC -E0x200", KeyHoldMin)
+global edtHoldMax := TLGui.Add("Edit", "x90 yp w65 h20 Number Hidden Background1E293B cF8FAFC -E0x200", KeyHoldMax)
 
 ; --- Key Bindings ---
-global lblKeys := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Keys (Combat / Loot):")
-global edtKeySkill := TLGui.Add("Edit", "x15 y+2 w50 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Skill)
-global edtKeyLoot := TLGui.Add("Edit", "x75 yp w50 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Loot)
+global lblKeys := TLGui.Add("Text", "x15 y+6 w140 h15 Hidden", "Keys (Combat / Loot):")
+global edtKeySkill := TLGui.Add("Edit", "x15 y+2 w65 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Skill)
+global edtKeyLoot := TLGui.Add("Edit", "x90 yp w65 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Loot)
 
-global lblFlaskKeys := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Flask Keys (1/2/3):")
-global edtKeyF1 := TLGui.Add("Edit", "x15 y+2 w30 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Flask1)
-global edtKeyF2 := TLGui.Add("Edit", "x55 yp w30 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Flask2)
-global edtKeyF3 := TLGui.Add("Edit", "x95 yp w30 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Flask3)
+global lblFlaskKeys := TLGui.Add("Text", "x15 y+6 w140 h15 Hidden", "Flask Keys (1/2/3):")
+global edtKeyF1 := TLGui.Add("Edit", "x15 y+2 w40 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Flask1)
+global edtKeyF2 := TLGui.Add("Edit", "x65 yp w40 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Flask2)
+global edtKeyF3 := TLGui.Add("Edit", "x115 yp w40 h20 Hidden Background1E293B cF8FAFC -E0x200", Key_Flask3)
 
 ; --- Color Guard Section ---
-global sepColor := TLGui.Add("Text", "x12 y+10 w116 h1 Background334155 Hidden vSepColor")
-global lblColorGuard := TLGui.Add("Text", "x15 y+6 w110 h15 Hidden", "Color Guard (Auto-Pause):")
-global chkColorGuard := TLGui.Add("Checkbox", "x15 y+2 w110 Hidden vEnableColor cF8FAFC", "Enable Monitoring")
-global lblColorCoords := TLGui.Add("Text", "x15 y+6 w120 h15 Hidden", "Coords, Color & Var:")
-global edtTargetX := TLGui.Add("Edit", "x15 y+2 w35 h20 Hidden Background1E293B cF8FAFC -E0x200", TargetX)
-global edtTargetY := TLGui.Add("Edit", "x55 yp w35 h20 Hidden Background1E293B cF8FAFC -E0x200", TargetY)
-global edtTargetColor := TLGui.Add("Edit", "x95 yp w40 h20 Hidden Background1E293B cF8FAFC -E0x200", TargetColor)
-global edtVariance := TLGui.Add("Edit", "x15 y+5 w35 h20 Hidden Background1E293B cF8FAFC -E0x200", ColorVariance)
+global sepColor := TLGui.Add("Text", "x12 y+10 w146 h1 Background334155 Hidden vSepColor")
+global lblColorGuard := TLGui.Add("Text", "x15 y+6 w140 h15 Hidden", "Color Guard (Auto-Pause):")
+global chkColorGuard := TLGui.Add("Checkbox", "x15 y+2 w140 Hidden vEnableColor cF8FAFC", "Enable Monitoring")
+global lblColorCoords := TLGui.Add("Text", "x15 y+6 w140 h15 Hidden", "Coords, Color & Var:")
+global edtTargetX := TLGui.Add("Edit", "x15 y+2 w40 h20 Hidden Background1E293B cF8FAFC -E0x200", TargetX)
+global edtTargetY := TLGui.Add("Edit", "x60 yp w40 h20 Hidden Background1E293B cF8FAFC -E0x200", TargetY)
+global edtTargetColor := TLGui.Add("Edit", "x105 yp w50 h20 Hidden Background1E293B cF8FAFC -E0x200", TargetColor)
+global edtVariance := TLGui.Add("Edit", "x15 y+5 w40 h20 Hidden Background1E293B cF8FAFC -E0x200", ColorVariance)
 
 TLGui.SetFont("s9 w600 cF8FAFC")
-global btnPickColor := TLGui.Add("Text", "x55 yp w80 h20 Center +0x200 Hidden Background6366F1", "Pick Color (F12)")
+global btnPickColor := TLGui.Add("Text", "x60 yp w95 h20 Center +0x200 Hidden Background6366F1", "Pick Color (F12)")
 
-global btnApply := TLGui.Add("Text", "x15 y+12 w110 h22 Center +0x200 Hidden Background10B981", "Apply Settings ✓")
-global btnReload := TLGui.Add("Text", "x15 y+6 w110 h22 Center +0x200 Hidden Background4B5563", "Reload Script 🔄")
-global btnExit := TLGui.Add("Text", "x15 y+6 w110 h22 Center +0x200 Hidden BackgroundEF4444", "Exit App ✕")
+global btnApply := TLGui.Add("Text", "x15 y+12 w140 h22 Center +0x200 Hidden Background10B981", "Apply Settings ✓")
+global btnReload := TLGui.Add("Text", "x15 y+6 w140 h22 Center +0x200 Hidden Background4B5563", "Reload Script 🔄")
+global btnExit := TLGui.Add("Text", "x15 y+6 w140 h22 Center +0x200 Hidden BackgroundEF4444", "Exit App ✕")
 
 ; --- Minimized Logo (Hidden by default, custom styled icon button) ---
 TLGui.SetFont("s10 Bold cF8FAFC")
@@ -187,7 +191,6 @@ chkFlask.OnEvent("Click", (*) => ToggleFlasks(true))
 chkLoot.OnEvent("Click", (*) => ToggleLoot(true))
 chkPause.OnEvent("Click", (*) => ToggleMasterPause(true))
 btnMin.OnEvent("Click", (*) => ToggleGuiMode(true))
-btnLogo.OnEvent("Click", (*) => ToggleGuiMode(false))
 btnSettings.OnEvent("Click", (*) => ToggleSettings())
 btnApply.OnEvent("Click", (*) => ApplySettings())
 btnReload.OnEvent("Click", (*) => Reload())
@@ -205,7 +208,7 @@ OnMessage(0x0200, WM_MOUSEMOVE)
 SetTimer CheckWindowActive, 200
 
 ; Show Initial State
-TLGui.Show("x50 y150 w140 h240 NoActivate")
+TLGui.Show("x50 y150 w170 h240 NoActivate")
 WinSetTransparent(180, "ahk_id " TLGui.Hwnd)
 
 ; Load settings AFTER GUI is created and shown so that UI elements are fully initialized!
@@ -214,7 +217,32 @@ LoadSettings()
 ; ------------------------------------------------------------------------------
 ; 5. WINDOW MESSAGE HANDLERS
 ; ------------------------------------------------------------------------------
-WM_LBUTTONDOWN(*) {
+WM_LBUTTONDOWN(wParam, lParam, msg, hwnd) {
+    global btnLogo, TLGui
+    
+    ; If minimized (btnLogo is visible), distinguish click vs drag
+    if btnLogo.Visible {
+        CoordMode "Mouse", "Screen"
+        MouseGetPos(&startX, &startY)
+        
+        isDrag := false
+        while GetKeyState("LButton", "P") {
+            MouseGetPos(&currX, &currY)
+            if (Abs(currX - startX) > 4 or Abs(currY - startY) > 4) {
+                isDrag := true
+                break
+            }
+            Sleep 10
+        }
+        
+        if isDrag {
+            PostMessage 0xA1, 2, , , "ahk_id " TLGui.Hwnd
+        } else {
+            ToggleGuiMode(false)
+        }
+        return 0
+    }
+    
     PostMessage 0xA1, 2, , , "ahk_id " TLGui.Hwnd
 }
 
@@ -287,8 +315,10 @@ ToggleGuiMode(minimize) {
         ; Ensure settings are closed when minimizing
         ToggleSettings(false) ; Force close controls
 
-        ; Show Logo
+        ; Show Logo with the current status color
+        try btnLogo.Opt("Background" CurrentStatusColor)
         btnLogo.Visible := true
+        try btnLogo.Redraw()
 
         ; Shrink Window (Ghost Mode)
         TLGui.Show("w40 h40")
@@ -309,7 +339,7 @@ ToggleGuiMode(minimize) {
         btnSettings.Visible := true
 
         ; Expand Window (Reset settings view to closed)
-        TLGui.Show("w140 h240")
+        TLGui.Show("w170 h240")
         WinSetTransparent(180, "ahk_id " TLGui.Hwnd)
     }
 }
@@ -520,6 +550,7 @@ LoadSettings() {
     global SpamIntervalMin, SpamIntervalMax, FlaskLoopInterval, LootLoopInterval, KeyHoldMin, KeyHoldMax
     global Key_Skill, Key_Loot, Key_Flask1, Key_Flask2, Key_Flask3, ColorGuardEnabled, TargetX,
         TargetY, TargetColor, ColorVariance
+    global Key_ToggleSpam, Key_ToggleFlasks, Key_ToggleLoot, Key_MasterPause
 
     if FileExist(IniFile) {
         try {
@@ -547,12 +578,31 @@ LoadSettings() {
             TargetColor := IniRead(IniFile, "ColorGuard", "TargetColor", TargetColor)
             ColorVariance := IniRead(IniFile, "ColorGuard", "ColorVariance", ColorVariance)
 
-            ; Sync GUI
+            ; Sync GUI Controls
+            edtSpamMin.Value := SpamIntervalMin
+            edtSpamMax.Value := SpamIntervalMax
+            edtFlask.Value := FlaskLoopInterval
+            edtLoot.Value := LootLoopInterval
+            edtHoldMin.Value := KeyHoldMin
+            edtHoldMax.Value := KeyHoldMax
+
+            edtKeySkill.Value := Key_Skill
+            edtKeyLoot.Value := Key_Loot
+            edtKeyF1.Value := Key_Flask1
+            edtKeyF2.Value := Key_Flask2
+            edtKeyF3.Value := Key_Flask3
+
             chkColorGuard.Value := ColorGuardEnabled
             edtTargetX.Value := TargetX
             edtTargetY.Value := TargetY
             edtTargetColor.Value := TargetColor
             edtVariance.Value := ColorVariance
+
+            ; Sync Checkbox Labels
+            chkSpam.Text := "Combat (" Key_ToggleSpam ")"
+            chkFlask.Text := "Flasks (" Key_ToggleFlasks ")"
+            chkLoot.Text := "Auto Loot (" Key_ToggleLoot ")"
+            chkPause.Text := "Pause All (" Key_MasterPause ")"
         }
     }
     RegisterHotkeys()
@@ -566,19 +616,27 @@ UpdateStatus(msg) {
 }
 
 CheckWindowActive() {
-    global isMasterPaused, isColorPaused, isFocusPaused
+    global isMasterPaused, isColorPaused, isFocusPaused, isShopPaused, CurrentStatusColor
 
     if WinActive(TargetProcess) {
         if isFocusPaused {
             isFocusPaused := false
             RestoreState()
-            if (!isMasterPaused && !isColorPaused)
+            if (!isMasterPaused && !isColorPaused && !isShopPaused)
                 UpdateStatus("Resumed (Focused)")
         }
-        if (isMasterPaused || isColorPaused) {
+        if (isMasterPaused || isColorPaused || isShopPaused) {
             try txtActiveDot.Opt("cF59E0B") ; Yellow/Amber (Paused)
+            try txtActiveDot.Redraw()
+            CurrentStatusColor := "F59E0B"
+            try btnLogo.Opt("Background" CurrentStatusColor)
+            try btnLogo.Redraw()
         } else {
             try txtActiveDot.Opt("c10B981") ; Emerald Green (Active)
+            try txtActiveDot.Redraw()
+            CurrentStatusColor := "10B981"
+            try btnLogo.Opt("Background" CurrentStatusColor)
+            try btnLogo.Redraw()
         }
     } else {
         if !isFocusPaused {
@@ -587,6 +645,10 @@ CheckWindowActive() {
             UpdateStatus("Unfocused: PAUSED")
         }
         try txtActiveDot.Opt("cEF4444")    ; Crimson Red (Unfocused/Inactive)
+        try txtActiveDot.Redraw()
+        CurrentStatusColor := "EF4444"
+        try btnLogo.Opt("Background" CurrentStatusColor)
+        try btnLogo.Redraw()
     }
 }
 
@@ -595,6 +657,7 @@ ToggleColorGuard(fromGui := false) {
 
     if fromGui {
         ColorGuardEnabled := chkColorGuard.Value
+        try IniWrite(ColorGuardEnabled ? 1 : 0, IniFile, "ColorGuard", "Enabled")
     }
 
     if ColorGuardEnabled {
@@ -612,10 +675,10 @@ ToggleColorGuard(fromGui := false) {
 }
 
 ColorCheckLoop() {
-    global ColorGuardEnabled, TargetX, TargetY, TargetColor, ColorVariance, isColorPaused
-    global isMasterPaused
+    global ColorGuardEnabled, TargetX, TargetY, TargetColor, ColorVariance, isColorPaused, isShopPaused
+    global isMasterPaused, ColorGuardHibernationEnd
 
-    if not ColorGuardEnabled or isMasterPaused
+    if not ColorGuardEnabled or isMasterPaused or (A_TickCount < ColorGuardHibernationEnd)
         return
 
     try {
@@ -632,10 +695,18 @@ ColorCheckLoop() {
                 UpdateStatus("Color Guard: PAUSED")
             }
         } else {
+            isStateChanged := false
             if isColorPaused {
                 isColorPaused := false
+                isStateChanged := true
+            }
+            if isShopPaused {
+                isShopPaused := false
+                isStateChanged := true
+            }
+            if isStateChanged {
                 RestoreState()
-                UpdateStatus("Color Guard: RESUMED")
+                UpdateStatus("Resumed (HUD Detected)")
             }
         }
     }
@@ -674,6 +745,8 @@ PickColorCoord() {
                 IniWrite(TargetX, IniFile, "ColorGuard", "TargetX")
                 IniWrite(TargetY, IniFile, "ColorGuard", "TargetY")
                 IniWrite(TargetColor, IniFile, "ColorGuard", "TargetColor")
+                IniWrite(ColorVariance, IniFile, "ColorGuard", "ColorVariance")
+                IniWrite(ColorGuardEnabled ? 1 : 0, IniFile, "ColorGuard", "Enabled")
             }
             break
         }
@@ -700,6 +773,30 @@ PickColorCoord() {
 
 ; --- Hotkeys ---
 ; Dynamic: Registered via RegisterHotkeys()
+
+~RCtrl:: {
+    global isShopPaused, isMasterPaused, isColorPaused, isFocusPaused, ColorGuardHibernationEnd
+    ColorGuardHibernationEnd := A_TickCount + 1000
+    if !isShopPaused {
+        StopAutomation(true)
+        isShopPaused := true
+        UpdateStatus("Shop Paused")
+    } else {
+        isShopPaused := false
+        RestoreState()
+        UpdateStatus("Resumed (Shop Closed)")
+    }
+}
+
+~Esc:: {
+    global isShopPaused, ColorGuardHibernationEnd
+    if isShopPaused {
+        ColorGuardHibernationEnd := A_TickCount + 1000
+        isShopPaused := false
+        RestoreState()
+        UpdateStatus("Resumed (Shop Closed)")
+    }
+}
 
 ; Non-toggle hotkeys
 End:: Reload
@@ -826,11 +923,13 @@ ToggleMasterPause(fromGui := false) {
 ; --- Loops ---
 
 SpamLoop() {
+    if not isSpamming
+        return
     if WinActive(TargetProcess) {
         SendHuman(Key_Skill)
-        ; Use Gaussian distribution for more natural rhythm, ensure at least 1ms
-        SetTimer SpamLoop, Max(1, RandomGaussian(SpamIntervalMin, SpamIntervalMax))
     }
+    ; Always reschedule the timer so it doesn't die if focus is briefly lost
+    SetTimer SpamLoop, Max(1, RandomGaussian(SpamIntervalMin, SpamIntervalMax))
 }
 
 FlaskLoop() {
@@ -844,11 +943,16 @@ FlaskLoop() {
 }
 
 LootLoop() {
+    if not isAutoLooting
+        return
     if WinActive(TargetProcess) {
         SendHuman(Key_Loot)
-        ; Slight variation in check frequency, ensure at least 1ms to prevent turning off
-        SetTimer LootLoop, Max(1, Random(LootLoopInterval - 20, LootLoopInterval + 20))
     }
+    ; Always reschedule the timer so it doesn't die if focus is briefly lost
+    ; Use relative variance to prevent negative/extremely small intervals when LootLoopInterval is low
+    minInterval := Max(10, Integer(LootLoopInterval * 0.8))
+    maxInterval := Max(12, Integer(LootLoopInterval * 1.2))
+    SetTimer LootLoop, Random(minInterval, maxInterval)
 }
 
 ; --- Humanization Helpers ---
@@ -930,7 +1034,7 @@ StopAutomation(saveState := false) {
     if saveState {
         ; Only save memory if we aren't ALREADY in a paused state
         ; This prevents nested pauses (e.g. Master Pause while Color Paused) from wiping memory
-        if (!isMasterPaused && !isColorPaused && !isFocusPaused) {
+        if (!isMasterPaused && !isColorPaused && !isFocusPaused && !isShopPaused) {
             memSpam := isSpamming
             memFlask := isFlaskActive
             memLoot := isAutoLooting
@@ -954,7 +1058,7 @@ StopAutomation(saveState := false) {
 RestoreState() {
     global
 
-    if (isMasterPaused || isColorPaused || isFocusPaused)
+    if (isMasterPaused || isColorPaused || isFocusPaused || isShopPaused)
         return
 
     ; Directly apply stored state to avoid logic loops
@@ -993,37 +1097,53 @@ RestoreState() {
 }
 
 ResetButtonColor(hwnd) {
-    if (hwnd == btnSettings.Hwnd)
+    if (hwnd == btnSettings.Hwnd) {
         btnSettings.Opt("Background4F46E5")
-    else if (hwnd == btnApply.Hwnd)
+        btnSettings.Redraw()
+    } else if (hwnd == btnApply.Hwnd) {
         btnApply.Opt("Background10B981")
-    else if (hwnd == btnReload.Hwnd)
+        btnApply.Redraw()
+    } else if (hwnd == btnReload.Hwnd) {
         btnReload.Opt("Background4B5563")
-    else if (hwnd == btnExit.Hwnd)
+        btnReload.Redraw()
+    } else if (hwnd == btnExit.Hwnd) {
         btnExit.Opt("BackgroundEF4444")
-    else if (hwnd == btnPickColor.Hwnd)
+        btnExit.Redraw()
+    } else if (hwnd == btnPickColor.Hwnd) {
         btnPickColor.Opt("Background6366F1")
-    else if (hwnd == btnMin.Hwnd)
+        btnPickColor.Redraw()
+    } else if (hwnd == btnMin.Hwnd) {
         btnMin.Opt("Background1E293B")
-    else if (hwnd == btnLogo.Hwnd)
-        btnLogo.Opt("Background4F46E5")
+        btnMin.Redraw()
+    } else if (hwnd == btnLogo.Hwnd) {
+        btnLogo.Opt("Background" CurrentStatusColor)
+        btnLogo.Redraw()
+    }
 }
 
 ApplyButtonHoverColor(hwnd) {
-    if (hwnd == btnSettings.Hwnd)
+    if (hwnd == btnSettings.Hwnd) {
         btnSettings.Opt("Background6366F1")
-    else if (hwnd == btnApply.Hwnd)
+        btnSettings.Redraw()
+    } else if (hwnd == btnApply.Hwnd) {
         btnApply.Opt("Background34D399")
-    else if (hwnd == btnReload.Hwnd)
+        btnApply.Redraw()
+    } else if (hwnd == btnReload.Hwnd) {
         btnReload.Opt("Background6B7280")
-    else if (hwnd == btnExit.Hwnd)
+        btnReload.Redraw()
+    } else if (hwnd == btnExit.Hwnd) {
         btnExit.Opt("BackgroundF87171")
-    else if (hwnd == btnPickColor.Hwnd)
+        btnExit.Redraw()
+    } else if (hwnd == btnPickColor.Hwnd) {
         btnPickColor.Opt("Background818CF8")
-    else if (hwnd == btnMin.Hwnd)
+        btnPickColor.Redraw()
+    } else if (hwnd == btnMin.Hwnd) {
         btnMin.Opt("Background334155")
-    else if (hwnd == btnLogo.Hwnd)
+        btnMin.Redraw()
+    } else if (hwnd == btnLogo.Hwnd) {
         btnLogo.Opt("Background6366F1")
+        btnLogo.Redraw()
+    }
 }
 
 IsHoverableButton(hwnd) {
