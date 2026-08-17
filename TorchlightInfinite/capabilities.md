@@ -34,7 +34,12 @@ To minimize detection risks and prevent botting flag triggers, the script implem
 * Rapidly presses the game's loot key (default: `a`).
 * Features custom rate tuning with dynamic jitter to prevent rapid machine-like spam signatures.
 
-### 6. Intelligent "Color Guard" Auto-Pause System
+### 6. Auto Channeling Skill (`F5`)
+* Holds down the configured move toward cursor / channeling skill key (default: `e`).
+* Continuously channels movement/skills while active.
+* Fully integrated into the auto-pause architecture: releases the held key immediately when paused (Window Unfocus, Color Guard, Master Pause `F4`, Shop `RCtrl`), and restores key hold when automation resumes.
+
+### 7. Intelligent "Color Guard" Auto-Pause System
 An integrated color monitoring system designed to watch a specific pixel location (e.g., health bar, shield bar, or boss health state) and pause all automation if the color changes beyond a specified threshold:
 * **5x5 Pixel Sub-Sampling:** Instead of reading a single pixel, it samples a 5x5 grid around the target coordinates and calculates the average RGB values to avoid false triggers caused by screen noise or particle effects.
 * **Max Channel Variance Comparison:** Compares the difference between target color and current sub-sampled color. If any color channel (R, G, or B) exceeds the defined variance limit, it triggers a pause.
@@ -64,15 +69,19 @@ Settings are persisted in a local `settings.ini` configuration file under the fo
 * `SpamIntervalMin` / `SpamIntervalMax`: Timing boundaries for combat spam.
 * `FlaskLoopInterval`: Total wait time between flask cycles.
 * `LootLoopInterval`: Base delay for loot spam.
+* `ShopPauseDelay`: Hibernation delay (in ms) when opening shop/menu to allow state stabilization.
 * `KeyHoldMin` / `KeyHoldMax`: Duration range (in ms) for physical key holding.
 
 ### `[KeyBindings]`
 * `Key_Skill`: Combat skill button.
 * `Key_Loot`: Ground pickup button.
+* `Key_Channel`: Auto Channeling skill button (move toward cursor key).
+* `Key_Shop`: Shop / Menu toggle hotkey (default `RCtrl`).
 * `Key_Flask1` / `Key_Flask2` / `Key_Flask3`: Hotkeys for flask slots.
 * `Key_ToggleSpam` (`F1`): Toggle combat spam.
 * `Key_ToggleFlasks` (`F2`): Toggle flask loop.
 * `Key_ToggleLoot` (`F3`): Toggle auto loot.
+* `Key_ToggleChannel` (`F5`): Toggle auto channel skill.
 * `Key_MasterPause` (`F4`): Manually pause/resume all active automation.
 
 ### `[ColorGuard]`
