@@ -10,14 +10,13 @@
 
 class Controller {
     static TargetProcess := "ahk_group TLI_Target"
-    static Version := "2.5"
+    static Version := "2.6"
 
     ; --- State ---
     isSpamming := false
     isFlaskActive := false
     isAutoLooting := false
     isChanneling := false
-    isAutoVoid := false
     isMasterPaused := false
     isFocusPaused := false
     isShopPaused := false
@@ -34,7 +33,6 @@ class Controller {
     memFlask := false
     memLoot := false
     memChannel := false
-    memVoid := false
 
     __New() {
         this.cfg := Config()
@@ -42,7 +40,6 @@ class Controller {
 
         this.engine := AutomationEngine(this)
         this.color := ColorGuard(this)
-        this.void := VoidRoutine(this)
         this.ui := UI(this)
         this.monitor := WindowMonitor(this)
 
@@ -84,7 +81,6 @@ class Controller {
         cfg.ToggleFlasksOn := paused ? (this.memFlask ? 1 : 0) : (this.isFlaskActive ? 1 : 0)
         cfg.ToggleLootOn := paused ? (this.memLoot ? 1 : 0) : (this.isAutoLooting ? 1 : 0)
         cfg.ToggleChannelOn := paused ? (this.memChannel ? 1 : 0) : (this.isChanneling ? 1 : 0)
-        cfg.ToggleVoidOn := paused ? (this.memVoid ? 1 : 0) : (this.isAutoVoid ? 1 : 0)
         cfg.Save()
     }
 
@@ -101,8 +97,6 @@ class Controller {
         this.ToggleLoot(true)
         this.ui.chkChannel.Value := cfg.ToggleChannelOn ? 1 : 0
         this.ToggleChannel(true)
-        this.ui.chkVoid.Value := cfg.ToggleVoidOn ? 1 : 0
-        this.ToggleAutoVoid(true)
     }
 
     ; --------------------------------------------------------------------------
@@ -127,23 +121,6 @@ class Controller {
     ToggleChannel(fromGui := false) {
         this.ToggleSystem("isChanneling", "memChannel", this.ui.chkChannel, "Channel",
             () => this.engine.HoldChannel(), () => this.engine.ReleaseChannel(), fromGui)
-    }
-
-    ToggleAutoVoid(fromGui := false) {
-        this.ToggleSystem("isAutoVoid", "memVoid", this.ui.chkVoid, "Auto Void",
-            () => this.StartVoidAutomation(), () => this.color.StopVoidCheck(), fromGui)
-        this.monitor.UpdateVoidDot()
-    }
-
-    ; Auto Void on: begin the void color checks and force Auto Loot on so loot
-    ; keeps running while the void sequence executes.
-    StartVoidAutomation() {
-        this.color.StartVoidCheck()
-        if !this.isAutoLooting {
-            this.isAutoLooting := true
-            this.ui.chkLoot.Value := 1
-            this.engine.StartLoot()
-        }
     }
 
     ; --------------------------------------------------------------------------
@@ -239,40 +216,27 @@ class Controller {
     ; --------------------------------------------------------------------------
     ; State save / restore / cleanup
     ; --------------------------------------------------------------------------
-    StopAutomation(saveState := false, exceptVoid := false) {
+    StopAutomation(saveState := false) {
         if saveState {
             if !this.IsAnyPaused() {
                 this.memSpam := this.isSpamming
                 this.memFlask := this.isFlaskActive
+                this.memLoot := this.isAutoLooting
                 this.memChannel := this.isChanneling
-                if !exceptVoid
-                    this.memLoot := this.isAutoLooting
-                if !exceptVoid
-                    this.memVoid := this.isAutoVoid
             }
         }
 
         this.isSpamming := false
         this.isFlaskActive := false
+        this.isAutoLooting := false
         this.isChanneling := false
         this.ui.chkSpam.Value := 0
         this.ui.chkFlask.Value := 0
+        this.ui.chkLoot.Value := 0
         this.ui.chkChannel.Value := 0
         this.engine.StopSpam()
         this.engine.StopFlasks()
-
-        ; Auto Void keeps Auto Loot alive, so loot continues while voiding.
-        if !this.isAutoVoid {
-            this.isAutoLooting := false
-            this.ui.chkLoot.Value := 0
-            this.engine.StopLoot()
-        }
-
-        if !exceptVoid {
-            this.isAutoVoid := false
-            this.ui.chkVoid.Value := 0
-            this.color.StopVoidCheck()
-        }
+        this.engine.StopLoot()
 
         this.ReleaseAllKeys()
     }
@@ -309,8 +273,7 @@ class Controller {
             this.engine.StopFlasks()
         }
 
-        ; Ensure Auto Loot remains enabled and running during recovery if Auto Void is active
-        if this.isAutoVoid || this.memLoot {
+        if this.memLoot {
             this.isAutoLooting := true
             this.ui.chkLoot.Value := 1
             this.engine.StartLoot()
@@ -330,16 +293,6 @@ class Controller {
             this.isChanneling := false
             this.ui.chkChannel.Value := 0
             this.engine.ReleaseChannel()
-        }
-
-        if this.memVoid {
-            this.isAutoVoid := true
-            this.ui.chkVoid.Value := 1
-            this.color.StartVoidCheck()
-        } else {
-            this.isAutoVoid := false
-            this.ui.chkVoid.Value := 0
-            this.color.StopVoidCheck()
         }
 
         this.UpdateStatus("Automation Restored")

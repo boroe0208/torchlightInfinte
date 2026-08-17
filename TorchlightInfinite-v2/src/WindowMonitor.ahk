@@ -7,12 +7,11 @@
 ;  * Every 200ms verifies the game window is active
 ;  * On unfocus: stops all automation and remembers the running state
 ;  * On refocus: restores the exact automation state that was running
-;  * Owns the status dots (active/void) and the logo background color
+;  * Owns the status dot and the logo background color
 ; ==============================================================================
 
 class WindowMonitor {
     lastDotColor := ""
-    lastVoidDotColor := ""
 
     __New(app) {
         this.App := app
@@ -48,7 +47,6 @@ class WindowMonitor {
             this.SetDotColor("EF4444")
         }
 
-        this.UpdateVoidDot()
     }
 
     SetDotColor(color) {
@@ -64,22 +62,4 @@ class WindowMonitor {
         try app.ui.btnLogo.Redraw()
     }
 
-    UpdateVoidDot() {
-        app := this.App
-        if !app.ui.txtVoidActiveDot
-            return
-
-        color := "475569"
-        if (app.isMasterPaused || app.isFocusPaused || app.isShopPaused)
-            color := "F59E0B"
-        else if (app.isAutoVoid)
-            color := "818CF8"
-
-        if (color = this.lastVoidDotColor)
-            return
-        this.lastVoidDotColor := color
-
-        try app.ui.txtVoidActiveDot.Opt("c" color)
-        try app.ui.txtVoidActiveDot.Redraw()
-    }
 }

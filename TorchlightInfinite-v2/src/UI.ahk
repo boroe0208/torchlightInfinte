@@ -55,18 +55,11 @@ class UI {
         ["edtTargetX", "TargetX", "int"],
         ["edtTargetY", "TargetY", "int"],
         ["edtTargetColor", "TargetColor", "str"],
-        ["edtVariance", "ColorVariance", "int"],
-        ; --- Auto void color guard ---
-        ["edtVoidTargetX", "VoidTargetX", "int"],
-        ["edtVoidTargetY", "VoidTargetY", "int"],
-        ["edtVoidTargetColor", "VoidTargetColor", "str"],
-        ["edtVoidVariance", "VoidColorVariance", "int"],
-        ["edtVoidSteps", "VoidRoutineSteps", "str"]
+        ["edtVariance", "ColorVariance", "int"]
     ]
 
     CheckFields := [
-        ["chkColorGuard", "ColorGuardEnabled", "bool"],
-        ["chkVoid", "ToggleVoidOn", "bool"]
+        ["chkColorGuard", "ColorGuardEnabled", "bool"]
     ]
 
     ; Key fields that support "click then press a key" capture.
@@ -111,8 +104,6 @@ class UI {
         this.txtTitle := this.TLGui.Add("Text", "x14 y8 w72 h20 +0x200 cE2E8F0", "TL Control")
         this.TLGui.SetFont("s12 Bold c10B981")
         this.txtActiveDot := this.TLGui.Add("Text", "x92 y8 w14 h20 Center +0x200", "●")
-        this.TLGui.SetFont("s12 Bold c475569")
-        this.txtVoidActiveDot := this.TLGui.Add("Text", "x110 y8 w14 h20 Center +0x200", "●")
         this.TLGui.SetFont("s10 Bold c94A3B8")
         this.btnMin := this.TLGui.Add("Text", "x144 y7 w18 h18 Center +0x200 Background1E293B", Chr(0xF068))  ; nf-fa-minus
         this.btnClose := this.TLGui.Add("Text", "x164 y7 w18 h18 Center +0x200 Background1E293B", Chr(0xF00D))  ; nf-fa-times
@@ -129,7 +120,6 @@ class UI {
         this.chkFlask := this.TLGui.Add("Checkbox", "x14 y+10 w158 vFlask cF8FAFC", "Flasks (" this.App.cfg.Key_ToggleFlasks ")")
         this.chkLoot := this.TLGui.Add("Checkbox", "x14 y+10 w158 vLoot cF8FAFC", "Auto Loot (" this.App.cfg.Key_ToggleLoot ")")
         this.chkChannel := this.TLGui.Add("Checkbox", "x14 y+10 w158 vChannel cF8FAFC", "Auto Channel (" this.App.cfg.Key_ToggleChannel ")")
-        this.chkVoid := this.TLGui.Add("Checkbox", "x14 y+10 w158 vVoid cF8FAFC", "Auto Void")
         this.sepLine1 := this.TLGui.Add("Text", "x11 y+10 w168 h1 Background334155")
         this.chkPause := this.TLGui.Add("Checkbox", "x14 y+10 w158 vPause cF87171", "Pause All (" this.App.cfg.Key_MasterPause ")")
         this.sepLine2 := this.TLGui.Add("Text", "x11 y+10 w168 h1 Background334155")
@@ -220,19 +210,6 @@ class UI {
         this.edtTargetColor := this.TLGui.Add("Edit", "x105 yp w55 h20 Center Hidden Background1E293B cF8FAFC -E0x200", this.App.cfg.TargetColor)
         this.edtVariance := this.TLGui.Add("Edit", "x165 yp w40 h20 Center Hidden Background1E293B cF8FAFC -E0x200", this.App.cfg.ColorVariance)
 
-        this.TLGui.SetFont("s8 w700 c818CF8")
-        this.secVoidColor := this.TLGui.Add("Text", "x15 y+10 w190 h16 +0x200 Hidden", "AUTO VOID COLOR GUARD")
-
-        this.TLGui.SetFont("s8 c94A3B8")
-        this.lblVoidColorCoords := this.TLGui.Add("Text", "x15 y+6 w190 h14 Hidden", "Void X / Y / Color / Var:")
-        this.edtVoidTargetX := this.TLGui.Add("Edit", "x15 y+2 w40 h20 Center Hidden Background1E293B cF8FAFC -E0x200", this.App.cfg.VoidTargetX)
-        this.edtVoidTargetY := this.TLGui.Add("Edit", "x60 yp w40 h20 Center Hidden Background1E293B cF8FAFC -E0x200", this.App.cfg.VoidTargetY)
-        this.edtVoidTargetColor := this.TLGui.Add("Edit", "x105 yp w55 h20 Center Hidden Background1E293B cF8FAFC -E0x200", this.App.cfg.VoidTargetColor)
-        this.edtVoidVariance := this.TLGui.Add("Edit", "x165 yp w40 h20 Center Hidden Background1E293B cF8FAFC -E0x200", this.App.cfg.VoidColorVariance)
-        this.lblVoidSteps := this.TLGui.Add("Text", "x15 y+6 w190 h14 Hidden", "Void Routine Steps:")
-        this.edtVoidSteps := this.TLGui.Add("Edit", "x15 y+2 w190 h60 Hidden Multi Background1E293B cF8FAFC -E0x200", this.App.cfg.VoidRoutineSteps)
-        this.btnPickVoidColor := this.TLGui.Add("Text", "x15 y+6 w190 h20 Center +0x200 Hidden Background6366F1", "Pick Void Color")
-
         this.TLGui.SetFont("s9 w600 cF8FAFC")
         this.btnPickColor := this.TLGui.Add("Text", "x15 y+6 w190 h20 Center +0x200 Hidden Background6366F1", "Pick Screen Color (F12)")
         this.btnApply := this.TLGui.Add("Text", "x15 y+12 w190 h22 Center +0x200 Hidden Background10B981", "Apply Settings " Chr(0xF00C))  ; nf-fa-check
@@ -245,8 +222,8 @@ class UI {
 
         ; --- Control Collections ---
         this.MainControls := [
-            this.txtTitle, this.txtActiveDot, this.txtVoidActiveDot, this.btnMin, this.btnClose,
-            this.chkSpam, this.chkFlask, this.chkLoot, this.chkChannel, this.chkVoid,
+            this.txtTitle, this.txtActiveDot, this.btnMin, this.btnClose,
+            this.chkSpam, this.chkFlask, this.chkLoot, this.chkChannel,
             this.sepLine1, this.chkPause, this.sepLine2, this.txtStatus, this.txtVersion, this.btnSettings
         ]
 
@@ -263,9 +240,7 @@ class UI {
             this.edtKeyTglChannel, this.edtKeyTglPause, this.secColor, this.chkColorGuard,
             this.lblColorInterval, this.edtColorInterval, this.lblColorStability, this.edtPauseStab,
             this.edtResumeStab, this.lblMinPause, this.edtMinPause, this.lblColorCoords, this.edtTargetX,
-            this.edtTargetY, this.edtTargetColor, this.edtVariance, this.secVoidColor,
-            this.lblVoidColorCoords, this.edtVoidTargetX, this.edtVoidTargetY, this.edtVoidTargetColor,
-            this.edtVoidVariance, this.lblVoidSteps, this.edtVoidSteps, this.btnPickVoidColor, this.btnPickColor, this.btnApply, this.btnReload, this.btnExit
+            this.edtTargetY, this.edtTargetColor, this.edtVariance, this.btnPickColor, this.btnApply, this.btnReload, this.btnExit
         ]
 
         for ctrl in this.SettingsControls {
@@ -280,7 +255,6 @@ class UI {
             this.btnReload.Hwnd, { normal: "4B5563", hover: "6B7280", ctrl: this.btnReload },
             this.btnExit.Hwnd, { normal: "EF4444", hover: "F87171", ctrl: this.btnExit },
             this.btnPickColor.Hwnd, { normal: "6366F1", hover: "818CF8", ctrl: this.btnPickColor },
-            this.btnPickVoidColor.Hwnd, { normal: "6366F1", hover: "818CF8", ctrl: this.btnPickVoidColor },
             this.btnMin.Hwnd, { normal: "1E293B", hover: "334155", ctrl: this.btnMin },
             this.btnClose.Hwnd, { normal: "1E293B", hover: "EF4444", ctrl: this.btnClose },
             this.btnLogo.Hwnd, { normal: "", hover: "6366F1", ctrl: this.btnLogo }
@@ -291,7 +265,6 @@ class UI {
         this.chkFlask.OnEvent("Click", (*) => this.App.ToggleFlasks(true))
         this.chkLoot.OnEvent("Click", (*) => this.App.ToggleLoot(true))
         this.chkChannel.OnEvent("Click", (*) => this.App.ToggleChannel(true))
-        this.chkVoid.OnEvent("Click", (*) => this.App.ToggleAutoVoid(true))
         this.chkPause.OnEvent("Click", (*) => this.App.ToggleMasterPause(true))
         this.btnMin.OnEvent("Click", (*) => this.ToggleGuiMode(true))
         this.btnClose.OnEvent("Click", (*) => this.ExitScript())
@@ -300,8 +273,7 @@ class UI {
         this.btnApply.OnEvent("Click", (*) => this.ApplySettings())
         this.btnReload.OnEvent("Click", (*) => (this.SavePosition(), Reload()))
         this.btnExit.OnEvent("Click", (*) => ExitApp())
-        this.btnPickColor.OnEvent("Click", (*) => this.App.color.PickColorCoord(false))
-        this.btnPickVoidColor.OnEvent("Click", (*) => this.App.color.PickColorCoord(true))
+        this.btnPickColor.OnEvent("Click", (*) => this.App.color.PickColorCoord())
         this.chkColorGuard.OnEvent("Click", (*) => this.App.color.ToggleColorGuard(true))
 
         ; Key capture: clicking a hotkey field then pressing a key sets it.
@@ -369,14 +341,8 @@ class UI {
                 this.App.UpdateStatus("Hotkey error: " err)
                 return
             }
-            vErr := this.App.void.ValidateSteps()
-            if (vErr != "") {
-                this.App.UpdateStatus("Void steps error: " vErr)
-                return
-            }
 
             this.App.cfg.Save()
-            this.App.void.ParseSteps()
             this.App.RegisterHotkeys()
             this.App.color.ToggleColorGuard(false)
             this.UpdateToggleLabels()
@@ -644,8 +610,6 @@ class UI {
                 CurrControl := "Master Pause (Saves State)"
             else if (hControl = this.txtActiveDot.Hwnd)
                 CurrControl := this.GetActiveDotTooltip()
-            else if (hControl = this.txtVoidActiveDot.Hwnd)
-                CurrControl := "Void Dot`nIndigo: Auto Void Active`nYellow: Paused`nGrey: Idle"
             else if (hControl = this.btnSettings.Hwnd)
                 CurrControl := "Open Settings Page"
             else if (hControl = this.btnBack.Hwnd)

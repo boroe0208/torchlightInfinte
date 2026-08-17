@@ -39,8 +39,7 @@ click a hotkey field, then press the key you want and it fills in automatically.
 > Game-scoped hotkeys only fire while the Torchlight: Infinite window is active.
 > When the game loses focus, all automation auto-pauses and restores on return.
 > Hovering the status dots shows what the current color means.
-> Toggle states (Combat/Flasks/Loot/Channel/Void) are remembered across
-> restarts.
+> Toggle states (Combat/Flasks/Loot/Channel) are remembered across restarts.
 
 ### Exiting the script
 
@@ -63,8 +62,7 @@ TorchlightInfinite-v2/
 └── src/
     ├── Config.ahk           # Defaults + INI load/save (single source of truth)
     ├── AutomationEngine.ahk # Combat/flask/loot loops, humanized input, Gaussian
-    ├── ColorGuard.ahk       # Pixel sub-sampling, auto-pause, color picker, void check
-    ├── VoidRoutine.ahk      # Data-driven Auto Void sequence executor
+    ├── ColorGuard.ahk       # Pixel sub-sampling, auto-pause, color picker
     ├── WindowMonitor.ahk    # Focus auto-pause/resume, status dots
     ├── UI.ahk               # Floating control panel + scrollable settings page
     └── Controller.ahk       # State machine, toggles, hotkey registration
@@ -87,35 +85,16 @@ Everything lives in `settings.ini`:
 - **`[Settings]`** — combat/flask/loot timing, key-hold ranges, shop pause delay,
   mouse speed, and `EnableLog` (opt-in activity log).
 - **`[ToggleState]`** — the last automation toggle states (Combat/Flasks/Loot/
-  Channel/Void), restored automatically on launch.
+  Channel), restored automatically on launch.
 - **`[KeyBindings]`** — action keys, flask slot keys, and toggle hotkeys.
 - **`[ColorGuard]`** — HUD color monitoring target, variance, and interval,
   plus debounce (`PauseStability`/`ResumeStability`) and `MinPauseMs` for
   reliable menu/pause detection.
-- **`[AutoVoidGuard]`** — Auto Void trigger color target and interval.
-- **`[AutoVoidRoutine]`** — the data-driven click/key sequence executed when the
-  void color is detected (see below).
 - **`[GUI]`** — the overlay's last window position (`X`/`Y`), saved
   automatically on exit/reload.
 
 Values can be edited in the **Settings ⚙️** page and saved with **Apply ✓**,
 which validates, re-registers hotkeys, and persists everything to the INI file.
-
-### Auto Void Routine (data-driven)
-
-The Auto Void sequence is no longer hardcoded. It is a pipe-separated list in
-`[AutoVoidRoutine] Steps` (editable in-app via the **Settings ⚙️** page), so it
-can be tuned per screen/resolution without touching code:
-
-| Token | Meaning |
-| ----- | ------- |
-| `Sleep:MS` | Pause for `MS` milliseconds |
-| `Move:X,Y[,Speed]` | Move the mouse (speed defaults to `DefaultMouseSpeed`) |
-| `Click:Button[,HoldMin-HoldMax]` | Press, hold, release (default `Left`) |
-| `Key:Name[,HoldMin-HoldMax]` | Humanized key press (hold defaults to `KeyHold*`) |
-| `Send:Text` | Raw `Send` (e.g. `Send:{esc}`) |
-
-Example: `Steps=Sleep:1000|Move:900,400|Click:Left|Send:{esc}`
 
 ---
 
@@ -126,12 +105,10 @@ Example: `Steps=Sleep:1000|Move:900,400|Click:Left|Send:{esc}`
 - Input is humanized (randomized hold times, Gaussian interval distribution,
   ±20% loot jitter) to avoid machine-like spam signatures.
 - **Sticky-key protection:** every key press is tracked and released reliably
-  on pause/exit, overlapping presses are suppressed, and the Auto Void routine
-  aborts (releasing any held keys/buttons) if a pause or focus loss happens
-  mid-sequence.
+  on pause/exit, overlapping presses are suppressed, and every key/button
+  actually held is released if a pause or focus loss happens mid-sequence.
 - **Safe key capture:** pressing a hotkey while capturing a key binding does not
   fire the automation toggle.
 - **Settings are validated** before applying — duplicate/conflicting hotkeys
-  and malformed Auto Void steps are rejected with an on-screen status message
-  instead of silently breaking.
+  are rejected with an on-screen status message instead of silently breaking.
 - Use responsibly. Automated play may violate the game's terms of service.

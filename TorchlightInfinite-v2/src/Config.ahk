@@ -3,9 +3,9 @@
 ; ==============================================================================
 ; Config.ahk - Single source of truth for all script settings.
 ;
-; Owns the defaults, loads/saves settings.ini, and stores the data-driven
-; Auto Void routine step list. Every other module reads/writes through this
-; class so nothing else touches the INI file directly.
+; Owns the defaults and loads/saves settings.ini. Every other module
+; reads/writes through this class so nothing else touches the INI file
+; directly.
 ; ==============================================================================
 
 ; Resolves where settings.ini lives. Windows INI APIs (IniRead/IniWrite) fail
@@ -47,7 +47,6 @@ class Config {
     ToggleFlasksOn := 0
     ToggleLootOn := 1
     ToggleChannelOn := 1
-    ToggleVoidOn := 0
 
     ; --------------------------------------------------------------------------
     ; [KeyBindings]
@@ -79,31 +78,10 @@ class Config {
     ColorVariance := 15
 
     ; --------------------------------------------------------------------------
-    ; [AutoVoidGuard]
-    ; --------------------------------------------------------------------------
-    VoidTargetX := 0
-    VoidTargetY := 0
-    VoidTargetColor := "0x000000"
-    VoidColorVariance := 15
-    VoidCheckInterval := 150
-
-    ; --------------------------------------------------------------------------
     ; [GUI]
     ; --------------------------------------------------------------------------
     GuiX := 50
     GuiY := 150
-
-    ; --------------------------------------------------------------------------
-    ; [AutoVoidRoutine]
-    ; --------------------------------------------------------------------------
-    ; Data-driven click/key sequence executed when the void color is detected.
-    ; Pipe-separated tokens:
-    ;   Sleep:MS                       -> pause for MS milliseconds
-    ;   Move:X,Y[,Speed]               -> move mouse (speed defaults to DefaultMouseSpeed)
-    ;   Click:Button[,HoldMin-HoldMax] -> press + hold + release (default: Left)
-    ;   Key:Name[,HoldMin-HoldMax]     -> humanized key press (default hold from KeyHold*)
-    ;   Send:Text                      -> raw Send (e.g. {esc})
-    VoidRoutineSteps := ""
 
     ; --------------------------------------------------------------------------
     ; Loading
@@ -132,7 +110,6 @@ class Config {
             this.ToggleFlasksOn := this.ReadInt("ToggleState", "Flasks", this.ToggleFlasksOn)
             this.ToggleLootOn := this.ReadInt("ToggleState", "Loot", this.ToggleLootOn)
             this.ToggleChannelOn := this.ReadInt("ToggleState", "Channel", this.ToggleChannelOn)
-            this.ToggleVoidOn := this.ReadInt("ToggleState", "Void", this.ToggleVoidOn)
 
             ; [KeyBindings]
             this.Key_Skill := this.ReadStr("KeyBindings", "Key_Skill", this.Key_Skill)
@@ -158,16 +135,6 @@ class Config {
             this.TargetY := this.ReadInt("ColorGuard", "TargetY", this.TargetY)
             this.TargetColor := this.ReadStr("ColorGuard", "TargetColor", this.TargetColor)
             this.ColorVariance := this.ReadInt("ColorGuard", "ColorVariance", this.ColorVariance)
-
-            ; [AutoVoidGuard]
-            this.VoidTargetX := this.ReadInt("AutoVoidGuard", "TargetX", this.VoidTargetX)
-            this.VoidTargetY := this.ReadInt("AutoVoidGuard", "TargetY", this.VoidTargetY)
-            this.VoidTargetColor := this.ReadStr("AutoVoidGuard", "TargetColor", this.VoidTargetColor)
-            this.VoidColorVariance := this.ReadInt("AutoVoidGuard", "ColorVariance", this.VoidColorVariance)
-            this.VoidCheckInterval := this.ReadInt("AutoVoidGuard", "CheckInterval", this.VoidCheckInterval)
-
-            ; [AutoVoidRoutine]
-            this.VoidRoutineSteps := this.ReadStr("AutoVoidRoutine", "Steps", this.VoidRoutineSteps)
 
             ; [GUI]
             this.GuiX := this.ReadInt("GUI", "X", this.GuiX)
@@ -213,7 +180,6 @@ class Config {
             IniWrite(this.ToggleFlasksOn, Config.IniFile, "ToggleState", "Flasks")
             IniWrite(this.ToggleLootOn, Config.IniFile, "ToggleState", "Loot")
             IniWrite(this.ToggleChannelOn, Config.IniFile, "ToggleState", "Channel")
-            IniWrite(this.ToggleVoidOn, Config.IniFile, "ToggleState", "Void")
 
             ; [KeyBindings]
             IniWrite(this.Key_Skill, Config.IniFile, "KeyBindings", "Key_Skill")
@@ -239,16 +205,6 @@ class Config {
             IniWrite(this.TargetY, Config.IniFile, "ColorGuard", "TargetY")
             IniWrite(this.TargetColor, Config.IniFile, "ColorGuard", "TargetColor")
             IniWrite(this.ColorVariance, Config.IniFile, "ColorGuard", "ColorVariance")
-
-            ; [AutoVoidGuard]
-            IniWrite(this.VoidTargetX, Config.IniFile, "AutoVoidGuard", "TargetX")
-            IniWrite(this.VoidTargetY, Config.IniFile, "AutoVoidGuard", "TargetY")
-            IniWrite(this.VoidTargetColor, Config.IniFile, "AutoVoidGuard", "TargetColor")
-            IniWrite(this.VoidColorVariance, Config.IniFile, "AutoVoidGuard", "ColorVariance")
-            IniWrite(this.VoidCheckInterval, Config.IniFile, "AutoVoidGuard", "CheckInterval")
-
-            ; [AutoVoidRoutine]
-            IniWrite(this.VoidRoutineSteps, Config.IniFile, "AutoVoidRoutine", "Steps")
 
             ; [GUI]
             IniWrite(this.GuiX, Config.IniFile, "GUI", "X")
@@ -280,11 +236,6 @@ class Config {
         this.TargetX := Max(0, this.TargetX)
         this.TargetY := Max(0, this.TargetY)
 
-        this.VoidCheckInterval := Max(50, this.VoidCheckInterval)
-        this.VoidColorVariance := Max(0, this.VoidColorVariance)
-        this.VoidTargetX := Max(0, this.VoidTargetX)
-        this.VoidTargetY := Max(0, this.VoidTargetY)
-
         this.GuiX := Max(0, this.GuiX)
         this.GuiY := Max(0, this.GuiY)
 
@@ -295,7 +246,6 @@ class Config {
         this.ToggleFlasksOn := Min(Max(0, this.ToggleFlasksOn), 1)
         this.ToggleLootOn := Min(Max(0, this.ToggleLootOn), 1)
         this.ToggleChannelOn := Min(Max(0, this.ToggleChannelOn), 1)
-        this.ToggleVoidOn := Min(Max(0, this.ToggleVoidOn), 1)
     }
 
     ; Orders a min/max property pair (swapping inverted input), then floors

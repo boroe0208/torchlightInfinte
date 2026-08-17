@@ -42,7 +42,6 @@ if !A_IsAdmin && !hasNoAdminFlag {
 #Include "src\Config.ahk"
 #Include "src\AutomationEngine.ahk"
 #Include "src\ColorGuard.ahk"
-#Include "src\VoidRoutine.ahk"
 #Include "src\WindowMonitor.ahk"
 #Include "src\UI.ahk"
 #Include "src\Controller.ahk"

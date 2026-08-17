@@ -7,8 +7,6 @@
 ;  * Max-channel color distance comparison against a configurable variance
 ;  * Auto-recovery when the monitored color returns
 ;  * Interactive color picker (F12 / Pick buttons)
-;  * The Auto Void color checker lives here too, since it is a color monitor;
-;    it hands execution off to the VoidRoutine module.
 ; ==============================================================================
 
 class ColorGuard {
@@ -20,7 +18,6 @@ class ColorGuard {
     __New(app) {
         this.App := app
         this.fnColorCheck := ObjBindMethod(this, "ColorCheckLoop")
-        this.fnVoidCheck := ObjBindMethod(this, "VoidColorCheckLoop")
     }
 
     ; --------------------------------------------------------------------------
@@ -109,7 +106,7 @@ class ColorGuard {
     ; --------------------------------------------------------------------------
     ; Interactive color picker
     ; --------------------------------------------------------------------------
-    PickColorCoord(isVoid := false) {
+    PickColorCoord() {
         this.App.UpdateStatus("Click Target Point...")
         Tooltip "LEFT-CLICK on the point/color you want to monitor`nPress ESC to cancel."
 
@@ -120,17 +117,10 @@ class ColorGuard {
                 MouseGetPos(&mX, &mY)
                 mColor := this.GetAverageColor(mX, mY, 5)
 
-                if isVoid {
-                    this.App.cfg.VoidTargetX := mX
-                    this.App.cfg.VoidTargetY := mY
-                    this.App.cfg.VoidTargetColor := Format("0x{:06X}", mColor)
-                    this.App.UpdateStatus("Void Point Picked!")
-                } else {
-                    this.App.cfg.TargetX := mX
-                    this.App.cfg.TargetY := mY
-                    this.App.cfg.TargetColor := Format("0x{:06X}", mColor)
-                    this.App.UpdateStatus("Point Picked!")
-                }
+                this.App.cfg.TargetX := mX
+                this.App.cfg.TargetY := mY
+                this.App.cfg.TargetColor := Format("0x{:06X}", mColor)
+                this.App.UpdateStatus("Point Picked!")
 
                 this.App.cfg.Save()
                 this.App.ui.SyncFromConfig()
@@ -147,34 +137,6 @@ class ColorGuard {
 
         Tooltip()
         Sleep 200
-    }
-
-    ; --------------------------------------------------------------------------
-    ; Auto Void color checker
-    ; --------------------------------------------------------------------------
-    StartVoidCheck() {
-        ; Periodic (not self-re-armed): the timer keeps firing even when a
-        ; paused run early-returns, so the check cannot die permanently after
-        ; a pause/resume cycle.
-        SetTimer this.fnVoidCheck, this.App.cfg.VoidCheckInterval
-    }
-
-    StopVoidCheck() {
-        SetTimer this.fnVoidCheck, 0
-    }
-
-    VoidColorCheckLoop() {
-        cfg := this.App.cfg
-        if !this.App.isAutoVoid || this.App.IsAnyPaused(true) || (A_TickCount < this.App.ColorGuardHibernationEnd)
-            return
-
-        try {
-            currAvgColor := this.GetAverageColor(cfg.VoidTargetX, cfg.VoidTargetY, 5)
-            if (this.ColorDistanceInt(currAvgColor, Integer(cfg.VoidTargetColor)) <= cfg.VoidColorVariance)
-                this.App.void.Execute()
-        } catch {
-            ; Same transient-failure guard as the color check loop.
-        }
     }
 
     ; --------------------------------------------------------------------------

@@ -84,7 +84,7 @@ class AutomationEngine {
     ; --------------------------------------------------------------------------
     LootLoop() {
         app := this.App
-        if !app.isAutoLooting || (app.IsAnyPaused() && !app.isAutoVoid)
+        if !app.isAutoLooting || app.IsAnyPaused()
             return
         if WinActive(Controller.TargetProcess)
             this.SendHuman(app.cfg.Key_Loot)
@@ -151,8 +151,7 @@ class AutomationEngine {
     ; Humanized input simulation
     ; --------------------------------------------------------------------------
     ; Presses a key down and schedules its release after a randomized hold.
-    ; Optional explicit hold range overrides the configured KeyHold bounds
-    ; (used by the Auto Void routine).
+    ; Optional explicit hold range overrides the configured KeyHold bounds.
     SendHuman(key, holdMin := 0, holdMax := 0) {
         if holdMin = 0
             holdMin := this.App.cfg.KeyHoldMin

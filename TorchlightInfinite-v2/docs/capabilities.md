@@ -77,30 +77,17 @@ automation if the color changes beyond a specified threshold:
   anywhere on your screen to capture coordinates (`X`, `Y`) and color values in
   hex (`0xRRGGBB`) automatically.
 
-### 8. Auto Void (`Auto Void` checkbox / Color Guard dot)
-- Monitors a second pixel target (the void trigger color) at
-  `[AutoVoidGuard]` coordinates.
-- When the void color is detected, executes a fully **data-driven routine**
-  (see below) to navigate and interact automatically.
-- Forcing Auto Loot on while Auto Void is active, and preserving loot state
-  through pause/resume cycles.
-- **Abort on pause:** if a master/focus/shop/color pause (or focus loss)
-  happens mid-sequence, the routine aborts at the next step and releases any
-  held keys/buttons, so it never runs while paused or leaves input stuck.
-
-### 9. Sticky-Key Protection
+### 8. Sticky-Key Protection
 - Every key press is tracked through a **key-state registry** with its pending
   release timer. Re-pressing a key that is still held cancels the previous
   release and restarts the hold instead of sending overlapping presses.
-- All held keys and mouse buttons are released on pause, exit, reload, and when
-  the Auto Void routine aborts, so keys cannot be left stuck.
+- All held keys and mouse buttons are released on pause, exit, and reload, so
+  keys cannot be left stuck.
 
-### 10. Settings Validation & Diagnostics
+### 9. Settings Validation & Diagnostics
 - **Hotkey validation:** Before applying settings, duplicate toggle/shop
   bindings, collisions with the reserved `F12` color-picker key, and action
   keys that equal a toggle hotkey are rejected with a status message.
-- **Void steps validation:** Malformed or unknown steps in `[AutoVoidRoutine]`
-  are reported on Apply instead of failing silently.
 - **Activity log:** Optional `EnableLog` writes a timestamped event trail to
   `%APPDATA%\TorchlightInfinite\activity.log` for debugging.
 - **Safe key capture:** Toggle hotkeys are suppressed while a key binding is
@@ -117,11 +104,8 @@ designed to float on top of the game:
   - 🟡 **Yellow:** Script is active, but currently paused (by Master Pause or
     Color Guard).
   - 🔴 **Red:** Script is inactive or the game is currently out of focus.
-  - **Void dot:** Indicates Auto Void armed (indigo) / paused (yellow) / idle
-    (grey).
-  - **Hover tooltips:** Hovering the dots shows what the current color means.
-    The main dot reports the live state (active / specific pause reason /
-    unfocused); the void dot shows its color legend.
+  - **Hover tooltips:** Hovering the dot shows what the current color means —
+    active / specific pause reason / unfocused.
 - **Minimize to Logo ("Ghost Mode"):** Collapse the control panel into a tiny
   `🔥` button to clear screen space. **Right-click** the logo to exit.
 - **Header controls:** A **Minimize `—`** and **Exit `✕`** button in the panel
@@ -135,8 +119,7 @@ designed to float on top of the game:
 - **Key Capture:** Clicking any hotkey field in the settings page switches to
   capture mode — press a key and it fills in the field (Esc cancels).
 - **Scrollable Settings Page:** A dedicated settings view with a mouse-wheel
-  scrollable list of timing, key-binding, color-guard, void-options, and void
-  routine steps fields.
+  scrollable list of timing, key-binding, and color-guard fields.
 
 ---
 
@@ -161,11 +144,11 @@ The file is organized under the following sections:
 - `KeyHoldMin` / `KeyHoldMax`: Duration range (in ms) for physical key holding.
 - `DefaultMouseSpeed`: Mouse movement speed used by automation routines.
 - `EnableLog`: Opt-in activity log (`1` = ON). When enabled, timestamped events
-  (start, toggles, pauses, void runs, settings applied) are appended to
+  (start, toggles, pauses, settings applied) are appended to
   `%APPDATA%\TorchlightInfinite\activity.log`.
 
 ### `[ToggleState]`
-- `Spam` / `Flasks` / `Loot` / `Channel` / `Void`: The armed on/off state of each
+- `Spam` / `Flasks` / `Loot` / `Channel`: The armed on/off state of each
   automation toggle from the previous session, restored automatically on launch.
 
 ### `[KeyBindings]`
@@ -197,21 +180,6 @@ The file is organized under the following sections:
 - `TargetColor`: Expected hex color.
 - `ColorVariance`: Allowed variance threshold.
 
-### `[AutoVoidGuard]`
-- `TargetX` / `TargetY` / `TargetColor` / `ColorVariance`: Void trigger pixel
-  and tolerance.
-- `CheckInterval`: Sampling rate (ms) for the void color.
-
-### `[AutoVoidRoutine]`
-- `Steps`: The **data-driven** Auto Void click/key sequence, as a pipe-
-  separated list of tokens (editable in-app via the settings page):
-  - `Sleep:MS` — pause for `MS` milliseconds.
-  - `Move:X,Y[,Speed]` — move the mouse (speed defaults to `DefaultMouseSpeed`).
-  - `Click:Button[,HoldMin-HoldMax]` — press, hold, release (default `Left`).
-  - `Key:Name[,HoldMin-HoldMax]` — humanized key press (hold defaults to
-    `KeyHoldMin`/`KeyHoldMax`).
-  - `Send:Text` — raw `Send` (e.g. `Send:{esc}`).
-
 ### `[GUI]`
 - `X` / `Y`: Last overlay window position, written automatically on exit or
   reload and used on next launch.
@@ -226,11 +194,9 @@ The v2 rebuild splits the original single-file script into focused modules:
 | ------ | -------------- |
 | `src/Config.ahk` | Defaults + typed INI load/save. Single source of truth. |
 | `src/AutomationEngine.ahk` | Combat/flask/loot loops, humanized input, Gaussian generator. |
-| `src/ColorGuard.ahk` | Pixel sub-sampling, color distance, pause logic, picker, void color check. |
-| `src/VoidRoutine.ahk` | Parses and executes the data-driven Auto Void sequence. |
+| `src/ColorGuard.ahk` | Pixel sub-sampling, color distance, pause logic, picker. |
 | `src/WindowMonitor.ahk` | Focus auto-pause/resume, status dots. |
 | `src/UI.ahk` | Floating GUI, scroll, hover/tooltips, drag, minimize. |
 | `src/Controller.ahk` | Central state machine, toggles, hotkey registration. |
 
-Behavior is identical to the original; the code is simply organized by concern
-and the Auto Void routine is configurable instead of hardcoded.
+Behavior is identical to the original; the code is simply organized by concern.
