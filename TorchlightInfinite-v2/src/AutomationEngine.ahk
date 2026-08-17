@@ -15,6 +15,10 @@ class AutomationEngine {
         this.fnSpam := ObjBindMethod(this, "SpamLoop")
         this.fnFlask := ObjBindMethod(this, "FlaskLoop")
         this.fnLoot := ObjBindMethod(this, "LootLoop")
+        this.fnChannelReassert := ObjBindMethod(this, "ReassertChannel")
+        ; The key actually held for channeling (captured at hold time so a
+        ; mid-hold Key_Channel change cannot release the wrong key).
+        this.heldChannelKey := ""
     }
 
     ; --------------------------------------------------------------------------
@@ -160,17 +164,36 @@ class AutomationEngine {
 
     HoldChannel() {
         channel := this.App.cfg.Key_Channel
+        this.heldChannelKey := channel
         if !this.IsKeyDown(channel) {
             SendInput "{" channel " down}"
             this.KeyState[channel] := { down: true, releaseFn: 0 }
         }
+        ; Periodically re-assert the hold so the channel self-heals if the game
+        ; ever sees a key-up for it (e.g. the user presses/releases the channel
+        ; key manually while auto channel is on).
+        SetTimer this.fnChannelReassert, 50
     }
 
     ReleaseChannel() {
-        channel := this.App.cfg.Key_Channel
+        channel := this.heldChannelKey
         if this.IsKeyDown(channel) {
             this.KeyState.Delete(channel)
             try SendInput "{" channel " up}"
         }
+        SetTimer this.fnChannelReassert, 0
+    }
+
+    ; The game stops channeling whenever it processes a key-up for the channel
+    ; key. Our registry never auto-releases it, so the down must be re-sent
+    ; whenever the OS key state shows the key is no longer down.
+    ReassertChannel() {
+        channel := this.heldChannelKey
+        if !this.IsKeyDown(channel) {
+            SetTimer this.fnChannelReassert, 0
+            return
+        }
+        if !GetKeyState(channel, "P")
+            try SendInput "{" channel " down}"
     }
 }
