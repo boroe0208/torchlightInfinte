@@ -41,11 +41,12 @@ class Config {
 
     ; --------------------------------------------------------------------------
     ; [ToggleState] - remembered automation toggle states, restored on launch
+    ; Auto Loot and Auto Channel start enabled by default.
     ; --------------------------------------------------------------------------
     ToggleSpamOn := 0
     ToggleFlasksOn := 0
-    ToggleLootOn := 0
-    ToggleChannelOn := 0
+    ToggleLootOn := 1
+    ToggleChannelOn := 1
     ToggleVoidOn := 0
 
     ; --------------------------------------------------------------------------
