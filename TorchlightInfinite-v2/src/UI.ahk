@@ -100,37 +100,39 @@ class UI {
     ; --------------------------------------------------------------------------
     BuildGui() {
         this.TLGui := Gui("+AlwaysOnTop -Caption +ToolWindow +Owner", "TL Control")
-        this.TLGui.SetFont("s9", "Segoe UI")
+        ; Nerd Font (CaskaydiaCove NF) for the whole panel, including the
+        ; flame logo (monochrome nf-fa-fire, so no emoji font needed).
+        this.TLGui.SetFont("s9", "CaskaydiaCove NF")
         this.TLGui.BackColor := "0F172A"
         try DllCall("dwmapi\DwmSetWindowAttribute", "ptr", this.TLGui.Hwnd, "uint", 33, "int*", 2, "uint", 4)
 
         ; --- Header Section (Main Page) ---
-        this.TLGui.SetFont("s10 Bold", "Segoe UI")
+        this.TLGui.SetFont("s10 Bold", "CaskaydiaCove NF")
         this.txtTitle := this.TLGui.Add("Text", "x14 y8 w72 h20 +0x200 cE2E8F0", "TL Control")
         this.TLGui.SetFont("s12 Bold c10B981")
         this.txtActiveDot := this.TLGui.Add("Text", "x92 y8 w14 h20 Center +0x200", "●")
         this.TLGui.SetFont("s12 Bold c475569")
         this.txtVoidActiveDot := this.TLGui.Add("Text", "x110 y8 w14 h20 Center +0x200", "●")
         this.TLGui.SetFont("s10 Bold c94A3B8")
-        this.btnMin := this.TLGui.Add("Text", "x144 y7 w18 h18 Center +0x200 Background1E293B", "—")
-        this.btnClose := this.TLGui.Add("Text", "x164 y7 w18 h18 Center +0x200 Background1E293B", "✕")
+        this.btnMin := this.TLGui.Add("Text", "x144 y7 w18 h18 Center +0x200 Background1E293B", Chr(0xF068))  ; nf-fa-minus
+        this.btnClose := this.TLGui.Add("Text", "x164 y7 w18 h18 Center +0x200 Background1E293B", Chr(0xF00D))  ; nf-fa-times
 
         ; --- Header Section (Settings Page) ---
-        this.TLGui.SetFont("s10 Bold", "Segoe UI")
-        this.txtSettingsTitle := this.TLGui.Add("Text", "x15 y8 w120 h20 +0x200 cE2E8F0 Hidden", "⚙️ Settings")
+        this.TLGui.SetFont("s10 Bold", "CaskaydiaCove NF")
+        this.txtSettingsTitle := this.TLGui.Add("Text", "x15 y8 w120 h20 +0x200 cE2E8F0 Hidden", Chr(0xF013) " Settings")  ; nf-fa-cog
         this.TLGui.SetFont("s9 Bold cF8FAFC")
-        this.btnBack := this.TLGui.Add("Text", "x145 y7 w60 h20 Center +0x200 Background1E293B Hidden", "Back ↩")
+        this.btnBack := this.TLGui.Add("Text", "x145 y7 w60 h20 Center +0x200 Background1E293B Hidden", "Back " Chr(0xF060))  ; nf-fa-arrow-left
 
         ; --- Controls Section (Main Page) ---
-        this.TLGui.SetFont("s9 w600", "Segoe UI")
-        this.chkSpam := this.TLGui.Add("Checkbox", "x14 y38 w140 vSpam cF8FAFC", "Combat (" this.App.cfg.Key_ToggleSpam ")")
-        this.chkFlask := this.TLGui.Add("Checkbox", "x14 y+10 w140 vFlask cF8FAFC", "Flasks (" this.App.cfg.Key_ToggleFlasks ")")
-        this.chkLoot := this.TLGui.Add("Checkbox", "x14 y+10 w140 vLoot cF8FAFC", "Auto Loot (" this.App.cfg.Key_ToggleLoot ")")
-        this.chkChannel := this.TLGui.Add("Checkbox", "x14 y+10 w140 vChannel cF8FAFC", "Auto Channel (" this.App.cfg.Key_ToggleChannel ")")
-        this.chkVoid := this.TLGui.Add("Checkbox", "x14 y+10 w140 vVoid cF8FAFC", "Auto Void")
-        this.sepLine1 := this.TLGui.Add("Text", "x11 y+10 w150 h1 Background334155")
-        this.chkPause := this.TLGui.Add("Checkbox", "x14 y+10 w140 vPause cF87171", "Pause All (" this.App.cfg.Key_MasterPause ")")
-        this.sepLine2 := this.TLGui.Add("Text", "x11 y+10 w150 h1 Background334155")
+        this.TLGui.SetFont("s9 w600", "CaskaydiaCove NF")
+        this.chkSpam := this.TLGui.Add("Checkbox", "x14 y38 w158 vSpam cF8FAFC", "Combat (" this.App.cfg.Key_ToggleSpam ")")
+        this.chkFlask := this.TLGui.Add("Checkbox", "x14 y+10 w158 vFlask cF8FAFC", "Flasks (" this.App.cfg.Key_ToggleFlasks ")")
+        this.chkLoot := this.TLGui.Add("Checkbox", "x14 y+10 w158 vLoot cF8FAFC", "Auto Loot (" this.App.cfg.Key_ToggleLoot ")")
+        this.chkChannel := this.TLGui.Add("Checkbox", "x14 y+10 w158 vChannel cF8FAFC", "Auto Channel (" this.App.cfg.Key_ToggleChannel ")")
+        this.chkVoid := this.TLGui.Add("Checkbox", "x14 y+10 w158 vVoid cF8FAFC", "Auto Void")
+        this.sepLine1 := this.TLGui.Add("Text", "x11 y+10 w168 h1 Background334155")
+        this.chkPause := this.TLGui.Add("Checkbox", "x14 y+10 w158 vPause cF87171", "Pause All (" this.App.cfg.Key_MasterPause ")")
+        this.sepLine2 := this.TLGui.Add("Text", "x11 y+10 w168 h1 Background334155")
 
         ; --- Footer / Status (Main Page) ---
         this.TLGui.SetFont("s8 w600 cE2E8F0")
@@ -138,7 +140,7 @@ class UI {
         this.TLGui.SetFont("s8 c475569")
         this.txtVersion := this.TLGui.Add("Text", "x138 y+8 w44 h20 Right +0x200", "v" Controller.Version)
         this.TLGui.SetFont("s9 w600 cF8FAFC")
-        this.btnSettings := this.TLGui.Add("Text", "x14 y+8 w150 h22 Center +0x200 Background4F46E5", "Settings ⚙️")
+        this.btnSettings := this.TLGui.Add("Text", "x14 y+8 w150 h22 Center +0x200 Background4F46E5", "Settings " Chr(0xF013))  ; nf-fa-cog
 
         ; --- Settings Panel Controls ---
         this.TLGui.SetFont("s8 w700 c818CF8")
@@ -233,13 +235,13 @@ class UI {
 
         this.TLGui.SetFont("s9 w600 cF8FAFC")
         this.btnPickColor := this.TLGui.Add("Text", "x15 y+6 w190 h20 Center +0x200 Hidden Background6366F1", "Pick Screen Color (F12)")
-        this.btnApply := this.TLGui.Add("Text", "x15 y+12 w190 h22 Center +0x200 Hidden Background10B981", "Apply Settings ✓")
-        this.btnReload := this.TLGui.Add("Text", "x15 y+6 w190 h22 Center +0x200 Hidden Background4B5563", "Reload Script 🔄")
-        this.btnExit := this.TLGui.Add("Text", "x15 y+6 w190 h22 Center +0x200 Hidden BackgroundEF4444", "Exit App ✕")
+        this.btnApply := this.TLGui.Add("Text", "x15 y+12 w190 h22 Center +0x200 Hidden Background10B981", "Apply Settings " Chr(0xF00C))  ; nf-fa-check
+        this.btnReload := this.TLGui.Add("Text", "x15 y+6 w190 h22 Center +0x200 Hidden Background4B5563", "Reload Script " Chr(0xF021))  ; nf-fa-sync
+        this.btnExit := this.TLGui.Add("Text", "x15 y+6 w190 h22 Center +0x200 Hidden BackgroundEF4444", "Exit App " Chr(0xF00D))  ; nf-fa-times
 
         ; --- Minimized Logo ---
-        this.TLGui.SetFont("s14", "Segoe UI Emoji")
-        this.btnLogo := this.TLGui.Add("Text", "x0 y0 w40 h40 Center +0x200 Hidden Background4F46E5", "🔥")
+        this.TLGui.SetFont("s14")
+        this.btnLogo := this.TLGui.Add("Text", "x0 y0 w40 h40 Center +0x200 Hidden Background4F46E5", Chr(0xF06D))  ; nf-fa-fire
 
         ; --- Control Collections ---
         this.MainControls := [
@@ -316,7 +318,7 @@ class UI {
         OnMessage(0x020A, (wParam, lParam, msg, hwnd) => this.WM_MOUSEWHEEL(wParam, lParam, msg, hwnd))
         OnMessage(0x0204, (wParam, lParam, msg, hwnd) => this.WM_RBUTTONDOWN(wParam, lParam, msg, hwnd))
 
-        this.TLGui.Show("x" this.App.cfg.GuiX " y" this.App.cfg.GuiY " w186 h270 NoActivate")
+        this.TLGui.Show("x" this.App.cfg.GuiX " y" this.App.cfg.GuiY " w186 h300 NoActivate")
         WinSetTransparent(180, "ahk_id " this.TLGui.Hwnd)
     }
 
@@ -499,7 +501,7 @@ class UI {
                 ctrl.Visible := true
 
             this.ScrollSettings(0)
-            this.TLGui.Show("w186 h270")
+            this.TLGui.Show("w186 h300")
             WinSetTransparent(180, "ahk_id " this.TLGui.Hwnd)
         }
 
@@ -524,7 +526,7 @@ class UI {
             for ctrl in this.MainControls
                 ctrl.Visible := true
 
-            this.TLGui.Show("w186 h270")
+            this.TLGui.Show("w186 h300")
             WinSetTransparent(180, "ahk_id " this.TLGui.Hwnd)
         }
         WinRedraw("ahk_id " this.TLGui.Hwnd)

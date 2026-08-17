@@ -10,7 +10,7 @@
 
 class Controller {
     static TargetProcess := "ahk_group TLI_Target"
-    static Version := "2.2"
+    static Version := "2.5"
 
     ; --- State ---
     isSpamming := false
